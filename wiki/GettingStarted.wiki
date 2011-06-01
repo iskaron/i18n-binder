@@ -1,5 +1,4 @@
 #labels gettingstarted
-
 = Prerequisites =
 
  * Java 1.6+
@@ -17,7 +16,7 @@ http://i18n-binder.googlecode.com/svn/wiki/other/screenshotReleasePackageContent
 
 Provide a directory structure filled with property files you want to convert.
 
-== Adapte i18nBinder.properties ==
+== Adapt i18nBinder.properties ==
 
 Open the _i18nBinder.properties_ within the root folder of the extracted package.
 Adapt the necessary properies there.
@@ -68,8 +67,6 @@ This is done by
 {{{
 ant writeProperties
 }}}
-
-
 
 
 
