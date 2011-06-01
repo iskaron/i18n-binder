@@ -1,0 +1,69 @@
+#labels gettingstarted
+#Getting started with the i18n binder ant task
+
+= Prerequisites =
+
+* Java 1.6+
+* Apache ant 1.8.1+ (ant should be available in %Path% / console)
+
+= Download = 
+
+Download a release package from the download tab and extract it.
+The content of the extracted folder should look like:
+http://i18n-binder.googlecode.com/svn/wiki/other/screenshotReleasePackageContent.jpg
+
+= Usage =
+
+== Provide i18n directory ==
+
+Provide a directory structure filled with property files you want to convert.
+
+== Adapte i18nBinder.properties ==
+
+Open the _i18nBinder.properties_ within the root folder of the extracted package.
+Adapt the necessary properies there.
+
+For example 
+* the directory of the i18n files
+* the regular expression pattern for the file grouping
+
+As default the regular expression groups locales are supposed to be at the end of the filename, like e.g.:
+
+C:\i18n_src\subfolder1\administration_de_DE.properties
+C:\i18n_src\subfolder1\administration_en_US.properties
+...
+
+If your i18n directory has another structure like e.g.:
+
+C:\i18n_src\de_DE\administration.properties
+C:\i18n_src\en_US\administration.properties
+...
+
+you have to change the grouping expression.
+
+== Create XLS File ==
+
+Now call 
+
+{{{
+ant createXLSFile
+}}}
+
+to create the XLS file from the properties.
+
+== Write properties back to the i18n directory files ==
+
+If you have a XLS file you can write the changes back to the original property files.
+
+This is done by
+
+{{{
+ant writeProperties
+}}}
+
+
+
+
+
+
+
