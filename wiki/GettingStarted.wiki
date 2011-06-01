@@ -1,10 +1,9 @@
 #labels gettingstarted
-#Getting started with the i18n binder ant task
 
 = Prerequisites =
 
-* Java 1.6+
-* Apache ant 1.8.1+ (ant should be available in %Path% / console)
+ * Java 1.6+
+ * Apache ant 1.8.1+ (ant should be available in %Path% / console)
 
 = Download = 
 
@@ -24,20 +23,24 @@ Open the _i18nBinder.properties_ within the root folder of the extracted package
 Adapt the necessary properies there.
 
 For example 
-* the directory of the i18n files
-* the regular expression pattern for the file grouping
+ * the directory of the i18n files
+ * the regular expression pattern for the file grouping
 
 As default the regular expression groups locales are supposed to be at the end of the filename, like e.g.:
 
+{{{
 C:\i18n_src\subfolder1\administration_de_DE.properties
 C:\i18n_src\subfolder1\administration_en_US.properties
 ...
+}}}
 
 If your i18n directory has another structure like e.g.:
 
+{{{
 C:\i18n_src\de_DE\administration.properties
 C:\i18n_src\en_US\administration.properties
 ...
+}}}
 
 you have to change the grouping expression.
 
