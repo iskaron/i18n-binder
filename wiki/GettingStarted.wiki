@@ -51,6 +51,11 @@ ant createXLSFile
 
 to create the XLS file from the properties.
 
+This will result in a new XLS file in your root directory which if you open it will look like:
+
+http://i18n-binder.googlecode.com/svn/wiki/other/screenshotXLSExampleFile.jpg
+
+
 == Write properties back to the i18n directory files ==
 
 If you have a XLS file you can write the changes back to the original property files.
