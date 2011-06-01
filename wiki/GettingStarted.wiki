@@ -2,7 +2,7 @@
 = Prerequisites =
 
  * Java 1.6+
- * [http://ant.apache.org/|"Apache ant 1.8.1+"] (ant should be available in %Path% / console)
+ * [http://ant.apache.org/ Apache ant 1.8.1+] (ant should be available in %Path% / console)
 
 = Download = 
 
@@ -67,4 +67,3 @@ This is done by
 {{{
 ant writeProperties
 }}}
-
