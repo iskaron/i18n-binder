@@ -1,7 +1,7 @@
 #labels gettingstarted
 = Prerequisites =
 
- * Java 1.6+
+ * [http://www.oracle.com/technetwork/java/javase/downloads/index.html Java SE 1.6+]
  * [http://ant.apache.org/ Apache ant 1.8.1+] (ant should be available in %Path% / console)
 
 = Download = 
