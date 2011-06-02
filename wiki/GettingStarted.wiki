@@ -43,7 +43,7 @@ C:\i18n_src\en_US\administration.properties
 
 you have to change the grouping expression.
 
-See the [https://i18n-binder.googlecode.com/svn/trunk/i18nBinder/i18nBinderAntBuildScript template i18nBinder.properties file] for examples
+See the [http://i18n-binder.googlecode.com/svn/trunk/i18nBinder/i18nBinderAntBuildScript/i18nBinder.properties i18nBinder.properties file] template for examples.
 
 == Create XLS File ==
 
