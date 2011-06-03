@@ -118,7 +118,7 @@ public class PropertyFileContentParserTest
       
       //
       Property property = (Property) element;
-      assertEquals( "otherKey.45.67.abc", property.getKey() );
+      assertEquals( "otherKey.45.67.abc-xyz", property.getKey() );
       assertEquals( ":", property.getDelimiter() );
       assertEquals( "othervalue", property.getValueList().get( 0 ) );
     }
