@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +43,7 @@ public class ModifierHelperTest
   private File                  xlsFile            = null;
   
   /* ********************************************** Methods ********************************************** */
-
+  
   @Before
   public void setUp() throws Exception
   {
@@ -61,6 +62,17 @@ public class ModifierHelperTest
       this.xlsFile.delete();
     }
     
+    //
+    URL resource = this.getClass().getResource( "viewTest_.properties" );
+    if ( resource != null )
+    {
+      File newKeyPropertyFile = new File( resource.getFile() );
+      if ( newKeyPropertyFile.exists() )
+      {
+        newKeyPropertyFile.delete();
+      }
+    }
+    
   }
   
   @Test
@@ -74,7 +86,7 @@ public class ModifierHelperTest
     xlsFile.store();
     
     //
-    this.assertContent( xlsFile );
+    ModifierHelperTest.assertContent( xlsFile );
     
     //
     ModifierHelper.writeXLSFileContentToPropertyFiles( xlsFile.getFile(), null, new LocaleFilter(), true );
@@ -83,11 +95,11 @@ public class ModifierHelperTest
     xlsFile.load();
     
     //
-    this.assertContent( xlsFile );
+    ModifierHelperTest.assertContent( xlsFile );
     
   }
   
-  private void assertContent( XLSFile xlsFile )
+  private static void assertContent( XLSFile xlsFile )
   {
     //
     List<TableRow> tableRowList = xlsFile.getTableRowList();
@@ -166,6 +178,23 @@ public class ModifierHelperTest
     
     //
     assertTrue( propertyFileContent.hasPropertyKeyAndValueList( propertyKey, propertyValueList ) );
+    
+    //clean up
+    {
+      //
+      propertyFileName = tableRow.get( 0 ).replaceAll( Pattern.quote( "{locale}" ), "" );
+      propertyFile = new PropertyFile( propertyFileName );
+      propertyFile.load();
+      propertyFile.getPropertyFileContent().getPropertyMap().remove( propertyKey );
+      propertyFile.store();
+      
+      //
+      propertyFileName = tableRow.get( 0 ).replaceAll( Pattern.quote( "{locale}" ), "de_DE" );
+      propertyFile = new PropertyFile( propertyFileName );
+      propertyFile.load();
+      propertyFile.getPropertyFileContent().getPropertyMap().remove( propertyKey );
+      propertyFile.store();
+    }
     
   }
   

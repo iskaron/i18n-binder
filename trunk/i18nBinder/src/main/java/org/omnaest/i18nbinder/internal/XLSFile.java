@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +38,7 @@ import org.apache.poi.ss.usermodel.Workbook;
  * 
  * @author Omnaest
  */
-public class XLSFile
+public class XLSFile implements Serializable
 {
   /* ********************************************** Constants ********************************************** */
   private static final long   serialVersionUID  = 4924867114503312907L;
@@ -50,7 +51,7 @@ public class XLSFile
   protected File              file              = null;
   
   /* ********************************************** Classes/Interfaces ********************************************** */
-
+  
   /**
    * Representation of a row.
    */
@@ -60,7 +61,7 @@ public class XLSFile
   }
   
   /* ********************************************** Methods ********************************************** */
-
+  
   /**
    * Creates a unlinked instance. The underlying file has to be set before invoking {@link XLSFile#load()} or
    * {@link XLSFile#store()} methods.
@@ -176,7 +177,7 @@ public class XLSFile
   
   public List<TableRow> getTableRowList()
   {
-    return tableRowList;
+    return this.tableRowList;
   }
   
   public File getFile()
