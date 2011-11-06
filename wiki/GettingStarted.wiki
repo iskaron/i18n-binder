@@ -69,3 +69,26 @@ This is done by
 {{{
 ant writeProperties
 }}}
+
+
+== Create a Java source code facade based on the directories and property files ==
+
+Adapt the i18nBinder.properties:
+
+{{{
+# Filename of the created Java facade source file. The facade is only created if createJavaFacade is set to true
+javaFacadeFilename          = I18nFacade.java
+packageName                 = org.omnaest.some.packae.example
+baseNameInTargetPlattform   = i18n
+}}}
+
+Note: the *baseNameInTargetPlattform* flag will add a folder structure to the facade. This is important if your target plattform will have additional folders before theses you run the i18nBinder with.
+
+the run:
+
+{{{
+ant createJavaFacade
+}}}
+
+
+
