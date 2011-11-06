@@ -20,7 +20,7 @@
 
 	<taskdef name="i18nBinder" classname="org.omnaest.i18nbinder.I18nBinder">
 		<classpath>
-			<pathelement location="lib/i18nBinder-0.0.1-jar-with-dependencies.jar" />
+			<pathelement location="lib/i18nBinder-0.1.4-jar-with-dependencies.jar" />
 		</classpath>
 	</taskdef>
 
@@ -29,7 +29,16 @@
 
 	<!-- TARGETS -->
 	<target name="createXLSFile" description="This task creates a XLS file from a given fileset of property files.">
-		<i18nBinder xlsfilename="${xlsFilename}" logInfo="${logInfo}" localeFilterRegex="${localeFilterRegex}" fileNameLocaleGroupPattern="${fileNameLocaleGroupPattern}" fileNameLocaleGroupPatternGroupIndexList="${fileNameLocaleGroupPatternGroupIndexList}">
+		<i18nBinder xlsfilename="${xlsFilename}" logInfo="${logInfo}" localeFilterRegex="${localeFilterRegex}" fileNameLocaleGroupPattern="${fileNameLocaleGroupPattern}" fileNameLocaleGroupPatternGroupIndexList="${fileNameLocaleGroupPatternGroupIndexList}" createXLSFile="true">
+			<fileset dir="${i18nDirectory}">
+				<include name="**/*.properties" />
+			</fileset>
+		</i18nBinder>
+	</target>
+
+	<target name="createJavaFacade" description="This task creates a Java source code facade file from a given fileset of property files.">
+		<property name="baseFolderIgnoredPath" location="${i18nDirectory}" />
+		<i18nBinder javaFacadeFileName="${javaFacadeFilename}" logInfo="${logInfo}" localeFilterRegex="${localeFilterRegex}" fileNameLocaleGroupPattern="${fileNameLocaleGroupPattern}" fileNameLocaleGroupPatternGroupIndexList="${fileNameLocaleGroupPatternGroupIndexList}" createJavaFacade="true" baseNameInTargetPlattform="${baseNameInTargetPlattform}" baseFolderIgnoredPath="${baseFolderIgnoredPath}" packageName="${packageName}">
 			<fileset dir="${i18nDirectory}">
 				<include name="**/*.properties" />
 			</fileset>

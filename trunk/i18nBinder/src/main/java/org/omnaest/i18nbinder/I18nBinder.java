@@ -23,12 +23,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.omnaest.i18nbinder.internal.FacadeCreatorHelper;
 import org.omnaest.i18nbinder.internal.LocaleFilter;
 import org.omnaest.i18nbinder.internal.Logger;
 import org.omnaest.i18nbinder.internal.ModifierHelper;
@@ -39,7 +41,9 @@ public class I18nBinder extends Task
   /* ********************************************** Variables ********************************************** */
   protected List<FileSet> fileSetList                              = new ArrayList<FileSet>();
   
+  protected boolean       createXLSFile                            = false;
   protected String        xlsFileName                              = null;
+  
   protected String        fileEncoding                             = null;
   
   protected Boolean       logInfo                                  = false;
@@ -49,6 +53,12 @@ public class I18nBinder extends Task
   
   private String          fileNameLocaleGroupPattern               = null;
   private List<Integer>   fileNameLocaleGroupPatternGroupIndexList = null;
+  
+  protected boolean       createJavaFacade                         = false;
+  protected String        javaFacadeFileName                       = FacadeCreatorHelper.DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE;
+  protected String        baseNameInTargetPlattform                = "";
+  protected String        baseFolderIgnoredPath                    = "";
+  protected String        packageName                              = "";
   
   /* ********************************************** Methods ********************************************** */
   @Override
@@ -79,7 +89,17 @@ public class I18nBinder extends Task
     //
     if ( this.fileSetList.size() > 0 )
     {
-      this.createXLSFileFromFiles();
+      //
+      if ( this.createJavaFacade )
+      {
+        this.createJavaFaceFromFiles();
+      }
+      
+      //
+      if ( this.createXLSFile )
+      {
+        this.createXLSFileFromFiles();
+      }
     }
     else
     {
@@ -142,6 +162,41 @@ public class I18nBinder extends Task
                 Project.MSG_ERR );
     }
     
+  }
+  
+  /**
+   * Parses the property files and creates a Java facade source code file
+   */
+  protected void createJavaFaceFromFiles()
+  {
+    //
+    this.log( "Create Java source code facade file from property files..." );
+    
+    //
+    Set<File> propertyFileSet = this.resolveFilesFromFileSetList( this.fileSetList );
+    
+    try
+    {
+      String facadeFromPropertyFiles = FacadeCreatorHelper.createI18nInterfaceFacadeFromPropertyFiles( propertyFileSet,
+                                                                                                       this.localeFilter,
+                                                                                                       this.fileNameLocaleGroupPattern,
+                                                                                                       this.fileNameLocaleGroupPatternGroupIndexList,
+                                                                                                       this.baseNameInTargetPlattform,
+                                                                                                       this.baseFolderIgnoredPath,
+                                                                                                       this.packageName,
+                                                                                                       this.javaFacadeFileName.replaceAll( "\\.java$",
+                                                                                                                                           "" ) );
+      
+      File file = new File( this.javaFacadeFileName );
+      FileUtils.writeStringToFile( file, facadeFromPropertyFiles );
+    }
+    catch ( Exception e )
+    {
+      this.log( "Could not write Java facade to file", e, Project.MSG_ERR );
+    }
+    
+    //
+    this.log( "...done" );
   }
   
   /**
@@ -314,6 +369,42 @@ public class I18nBinder extends Task
     
     //
     this.fileNameLocaleGroupPatternGroupIndexList = fileNameLocaleGroupPatternGroupIndexList;
+  }
+  
+  public void setCreateXLSFile( boolean createXLSFile )
+  {
+    this.log( "createXLSFile=" + createXLSFile );
+    this.createXLSFile = createXLSFile;
+  }
+  
+  public void setCreateJavaFacade( boolean createJavaFacade )
+  {
+    this.log( "createJavaFacade=" + createJavaFacade );
+    this.createJavaFacade = createJavaFacade;
+  }
+  
+  public void setJavaFacadeFileName( String javaFacadeFileName )
+  {
+    this.log( "javaFacadeFileName=" + javaFacadeFileName );
+    this.javaFacadeFileName = javaFacadeFileName;
+  }
+  
+  public void setBaseNameInTargetPlattform( String baseNameInTargetPlattform )
+  {
+    this.log( "baseNameInTargetPlattform=" + baseNameInTargetPlattform );
+    this.baseNameInTargetPlattform = baseNameInTargetPlattform;
+  }
+  
+  public void setBaseFolderIgnoredPath( String baseFolderIgnoredPath )
+  {
+    this.log( "baseFolderIgnoredPath=" + baseFolderIgnoredPath );
+    this.baseFolderIgnoredPath = baseFolderIgnoredPath;
+  }
+  
+  public void setPackageName( String packageName )
+  {
+    this.log( "packageName=" + packageName );
+    this.packageName = packageName;
   }
   
 }
