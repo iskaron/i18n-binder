@@ -188,7 +188,7 @@ public class I18nBinder extends Task
                                                                                                                                            "" ) );
       
       File file = new File( this.javaFacadeFileName );
-      FileUtils.writeStringToFile( file, facadeFromPropertyFiles );
+      FileUtils.writeStringToFile( file, facadeFromPropertyFiles, "utf-8" );
     }
     catch ( Exception e )
     {

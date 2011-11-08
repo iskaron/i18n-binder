@@ -17,7 +17,9 @@ package org.omnaest.i18nbinder.internal;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -28,7 +30,16 @@ public class I18nFacadeTest
   {
     Locale locale = Locale.US;
     I18nFacade i18nFacade = new I18nFacade( locale );
-    assertEquals( "value1", i18nFacade.I18n._673numericalTest.getMyPropertyKey1() );
+    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.getMyPropertyKey1() );
     assertEquals( "value2", i18nFacade.I18n.AdminTest.getMyPropertyKey2() );
+    
+    //
+    assertEquals( "value a and b", i18nFacade.I18n._673numericalTest.getMyPropertyKey1( "a", "b" ) );
+    
+    //
+    Map<String, String> placeholderToReplacementMap = new HashMap<String, String>();
+    placeholderToReplacementMap.put( "arbitrary", "another" );
+    assertEquals( "value3 with another replacement",
+                  i18nFacade.I18n._673numericalTest.getMyPropertyKey3( placeholderToReplacementMap ) );
   }
 }

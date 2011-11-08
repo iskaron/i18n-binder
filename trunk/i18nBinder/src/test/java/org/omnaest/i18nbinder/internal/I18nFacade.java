@@ -1,27 +1,16 @@
-/*******************************************************************************
- * Copyright 2011 Danny Kunz
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
 package org.omnaest.i18nbinder.internal;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
  * This is an automatically with i18nBinder generated facade class.<br>
  * <br>
  * To modify please adapt the underlying property files.<br>
+ * <br>
+ * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale}
+ * when invoked.<br>
  * <br>
  * 
  * @see I18n
@@ -43,6 +32,9 @@ public class I18nFacade
    * This is an automatically with i18nBinder generated facade class.<br>
    * <br>
    * To modify please adapt the underlying property files.<br>
+   * <br>
+   * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined
+   * {@link Locale} when invoked.<br>
    * <br>
    * Resource base: <b>i18n</b>
    * 
@@ -75,6 +67,9 @@ public class I18nFacade
      * <br>
      * To modify please adapt the underlying property files.<br>
      * <br>
+     * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined
+     * {@link Locale} when invoked.<br>
+     * <br>
      * Resource base: <b>i18n.673numericalTest</b>
      */
     public static class _673numericalTest
@@ -93,10 +88,16 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the given {@link Locale}. <br>
        * <br>
+       * Placeholders:
        * <ul>
-       * <li>en_US=value1</li>
+       * <li><b>{0}</b></li>
+       * <li><b>{1}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value {0} and {1}</li>
        * </ul>
        * 
        * @param locale
@@ -110,26 +111,88 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Placeholders:
        * <ul>
-       * <li>en_US=value1</li>
+       * <li><b>{0}</b></li>
+       * <li><b>{1}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value {0} and {1}</li>
        * </ul>
        * 
        * @see _673numericalTest
        */
       public String getMyPropertyKey1()
       {
-        String key = "my.property.key1";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey1( this.locale );
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the given {@link Locale} with all {0},{1},...
+       * placeholders replaced by the given tokens in their order.<br>
        * <br>
+       * If there are not enough parameters existing placeholders will remain unreplaced. <br>
+       * <br>
+       * Placeholders:
        * <ul>
-       * <li>en_US=value3</li>
+       * <li><b>{0}</b></li>
+       * <li><b>{1}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value {0} and {1}</li>
+       * </ul>
+       * 
+       * @see _673numericalTest
+       * @param locale
+       * @param tokens
+       */
+      public static String getMyPropertyKey1( Locale locale, String... tokens )
+      {
+        String retval = getMyPropertyKey1( locale );
+        for ( int ii = 0; ii < tokens.length; ii++ )
+        {
+          String token = tokens[ii];
+          if ( token != null )
+          {
+            retval = retval.replaceAll( "\\{" + ii + "\\}", token );
+          }
+        }
+        return retval;
+      }
+      
+      /**
+       * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale} with all {0},{1},...
+       * placeholders replaced by the given tokens in their order. If there are not enough parameters existing placeholders will
+       * remain unreplaced. <br>
+       * <br>
+       * Placeholders:
+       * <ul>
+       * <li><b>{0}</b></li>
+       * <li><b>{1}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value {0} and {1}</li>
+       * </ul>
+       * 
+       * @see _673numericalTest
+       * @param tokens
+       */
+      public String getMyPropertyKey1( String... tokens )
+      {
+        return getMyPropertyKey1( this.locale, tokens );
+      }
+      
+      /**
+       * Returns the value of the property key <b>my.property.key3</b> for the given {@link Locale}. <br>
+       * <br>
+       * Examples:
+       * <ul>
+       * <li>en_US=value3 with {arbitrary} replacement</li>
        * </ul>
        * 
        * @param locale
@@ -143,19 +206,73 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
-       * <li>en_US=value3</li>
+       * <li>en_US=value3 with {arbitrary} replacement</li>
        * </ul>
        * 
        * @see _673numericalTest
        */
       public String getMyPropertyKey3()
       {
-        String key = "my.property.key3";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey3( this.locale );
+      }
+      
+      /**
+       * Returns the value of the property key <b>my.property.key3</b> for the given {@link Locale} with arbitrary placeholder tag
+       * like {example} replaced by the given values. <br>
+       * <br>
+       * Placeholders:
+       * <ul>
+       * <li><b>{arbitrary}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value3 with {arbitrary} replacement</li>
+       * </ul>
+       * 
+       * @see _673numericalTest
+       * @param locale
+       * @param placeholderToReplacementMap
+       */
+      public static String getMyPropertyKey3( Locale locale, Map<String, String> placeholderToReplacementMap )
+      {
+        String retval = getMyPropertyKey3( locale );
+        if ( placeholderToReplacementMap != null )
+        {
+          for ( String placeholder : placeholderToReplacementMap.keySet() )
+          {
+            if ( placeholder != null )
+            {
+              String token = placeholderToReplacementMap.get( placeholder );
+              retval = retval.replaceAll( "\\{" + placeholder + "\\}", token );
+            }
+          }
+        }
+        return retval;
+      }
+      
+      /**
+       * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale} with arbitrary
+       * placeholder tag like {example} replaced by the given values. <br>
+       * <br>
+       * Placeholders:
+       * <ul>
+       * <li><b>{arbitrary}</b></li>
+       * </ul>
+       * Examples:
+       * <ul>
+       * <li>en_US=value3 with {arbitrary} replacement</li>
+       * </ul>
+       * 
+       * @see _673numericalTest
+       * @param placeholderToReplacementMap
+       */
+      public String getMyPropertyKey3( Map<String, String> placeholderToReplacementMap )
+      {
+        return getMyPropertyKey3( this.locale, placeholderToReplacementMap );
       }
       
     }
@@ -164,6 +281,9 @@ public class I18nFacade
      * This is an automatically with i18nBinder generated facade class.<br>
      * <br>
      * To modify please adapt the underlying property files.<br>
+     * <br>
+     * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined
+     * {@link Locale} when invoked.<br>
      * <br>
      * Resource base: <b>i18n.adminTest</b>
      */
@@ -183,8 +303,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert1</li>
        * <li>en_US=value1</li>
@@ -201,8 +322,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert1</li>
        * <li>en_US=value1</li>
@@ -212,14 +334,13 @@ public class I18nFacade
        */
       public String getMyPropertyKey1()
       {
-        String key = "my.property.key1";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey1( this.locale );
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key2</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert2</li>
        * <li>en_US=value2</li>
@@ -236,8 +357,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key2</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert2</li>
        * <li>en_US=value2</li>
@@ -247,9 +369,7 @@ public class I18nFacade
        */
       public String getMyPropertyKey2()
       {
-        String key = "my.property.key2";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey2( this.locale );
       }
       
     }
@@ -258,6 +378,9 @@ public class I18nFacade
      * This is an automatically with i18nBinder generated facade class.<br>
      * <br>
      * To modify please adapt the underlying property files.<br>
+     * <br>
+     * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined
+     * {@link Locale} when invoked.<br>
      * <br>
      * Resource base: <b>i18n.localelessTest</b>
      */
@@ -277,8 +400,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key9</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>=value9</li>
        * </ul>
@@ -294,8 +418,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key9</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>=value9</li>
        * </ul>
@@ -304,9 +429,7 @@ public class I18nFacade
        */
       public String getMyPropertyKey9()
       {
-        String key = "my.property.key9";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey9( this.locale );
       }
       
     }
@@ -315,6 +438,9 @@ public class I18nFacade
      * This is an automatically with i18nBinder generated facade class.<br>
      * <br>
      * To modify please adapt the underlying property files.<br>
+     * <br>
+     * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined
+     * {@link Locale} when invoked.<br>
      * <br>
      * Resource base: <b>i18n.viewTest</b>
      */
@@ -334,8 +460,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert1</li>
        * <li>en_US=value1</li>
@@ -352,8 +479,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert1</li>
        * <li>en_US=value1</li>
@@ -363,14 +491,13 @@ public class I18nFacade
        */
       public String getMyPropertyKey1()
       {
-        String key = "my.property.key1";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey1( this.locale );
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key3</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>en_US=value3</li>
        * </ul>
@@ -386,8 +513,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>en_US=value3</li>
        * </ul>
@@ -396,14 +524,13 @@ public class I18nFacade
        */
       public String getMyPropertyKey3()
       {
-        String key = "my.property.key3";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey3( this.locale );
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key4</b> for the given {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert4</li>
        * </ul>
@@ -419,8 +546,9 @@ public class I18nFacade
       }
       
       /**
-       * Examples:<br>
+       * Returns the value of the property key <b>my.property.key4</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Examples:
        * <ul>
        * <li>de_DE=wert4</li>
        * </ul>
@@ -429,9 +557,7 @@ public class I18nFacade
        */
       public String getMyPropertyKey4()
       {
-        String key = "my.property.key4";
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, this.locale );
-        return resourceBundle.getString( key );
+        return getMyPropertyKey4( this.locale );
       }
       
     }
