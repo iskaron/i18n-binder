@@ -23,6 +23,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -276,6 +277,7 @@ public class FacadeCreatorHelper
     
     //
     retval.append( StringUtils.isNotBlank( packageName ) ? "package " + packageName + ";\n\n" : "" );
+    retval.append( "import java.util.LinkedHashMap;\n" );
     retval.append( "import java.util.Locale;\n" );
     retval.append( "import java.util.Map;\n" );
     retval.append( "import java.util.ResourceBundle;\n\n" );
@@ -299,6 +301,9 @@ public class FacadeCreatorHelper
     Map<String, List<String>> propertyNameToExampleValueListMap = new LinkedHashMap<String, List<String>>();
     Map<String, String> propertyNameToPropertyKeyMap = new HashMap<String, String>();
     String baseName = StringUtils.join( navigator.determineTokenPathElementList(), "." );
+    
+    //
+    boolean hasBaseName = StringUtils.isNotBlank( baseName );
     
     //
     {
@@ -357,7 +362,7 @@ public class FacadeCreatorHelper
     stringBuilder.append( " * This is an automatically with i18nBinder generated facade class.<br><br>\n" );
     stringBuilder.append( " * To modify please adapt the underlying property files.<br><br>\n" );
     stringBuilder.append( " * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>\n" );
-    stringBuilder.append( StringUtils.isNotBlank( baseName ) ? " * Resource base: <b>" + baseName + "</b>\n" : "" );
+    stringBuilder.append( hasBaseName ? " * Resource base: <b>" + baseName + "</b>\n" : "" );
     
     for ( String subClassName : subClassNameToTokenElementMap.keySet() )
     {
@@ -425,7 +430,9 @@ public class FacadeCreatorHelper
         }
       }
       
-      //methods
+      //methods based on properties
+      boolean hasProperties = !propertyNameToExampleValueListMap.keySet().isEmpty();
+      if ( hasProperties )
       {
         //
         for ( String propertyName : propertyNameToExampleValueListMap.keySet() )
@@ -572,8 +579,90 @@ public class FacadeCreatorHelper
             stringBuilder.append( "  }\n\n" );
           }
         }
+        
+        //translation map methods
+        {
+          //
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * Returns the translated property key for the given {@link Locale}.\n" );
+          stringBuilder.append( "   * @param locale \n" );
+          stringBuilder.append( "   * @param key \n" );
+          stringBuilder.append( "   * @see " + className + "\n" );
+          stringBuilder.append( "   * @see #translate(String)\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public static String translate(Locale locale, String key)\n" );
+          stringBuilder.append( "  {\n" );
+          stringBuilder.append( "    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
+          stringBuilder.append( "    return resourceBundle.getString( key );\n" );
+          stringBuilder.append( "  }\n\n" );
+          
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * Returns the translated property key for the predefined {@link Locale}\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
+          stringBuilder.append( "   * @see " + className + "\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
+          stringBuilder.append( "   * @see #translate(String[])\n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public String translate( String key )\n" );
+          stringBuilder.append( "  {\n" );
+          stringBuilder.append( "    return translate( this.locale, key );\n" );
+          stringBuilder.append( "  }\n\n" );
+          
+          //
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.\n" );
+          stringBuilder.append( "   * @param locale \n" );
+          stringBuilder.append( "   * @param keys \n" );
+          stringBuilder.append( "   * @see " + className + "\n" );
+          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
+          stringBuilder.append( "   * @see #translate(String[])\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public static Map<String, String> translate( Locale locale, String... keys )\n" );
+          stringBuilder.append( "  {\n" );
+          stringBuilder.append( "    Map<String, String> retmap = new LinkedHashMap<String, String>();\n" );
+          stringBuilder.append( "    for ( String key : keys )\n" );
+          stringBuilder.append( "    {\n" );
+          stringBuilder.append( "      retmap.put( key, translate( locale, key ) );\n" );
+          stringBuilder.append( "    }\n" );
+          stringBuilder.append( "    return retmap;\n" );
+          stringBuilder.append( "  }\n\n" );
+          
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.\n" );
+          stringBuilder.append( "   * @param keys \n" );
+          stringBuilder.append( "   * @see " + className + "\n" );
+          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
+          stringBuilder.append( "   * @see #translate(String)\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public Map<String, String> translate( String... keys )\n" );
+          stringBuilder.append( "  {\n" );
+          stringBuilder.append( "    return translate( this.locale, keys );\n" );
+          stringBuilder.append( "  }\n\n" );
+          
+          //
+          
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * Returns all available property keys\n" );
+          stringBuilder.append( "   * @see " + className + "\n" );
+          stringBuilder.append( "   * @see #translate(String[])\n" );
+          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public static String[] allPropertyKeys()\n" );
+          stringBuilder.append( "  {\n" );
+          stringBuilder.append( "    return new String[]{" );
+          boolean first = true;
+          for ( String propertykey : propertyNameToPropertyKeyMap.values() )
+          {
+            stringBuilder.append( ( first ? "" : "," ) + "\"" + propertykey + "\"" );
+            first = false;
+          }
+          stringBuilder.append( "};\n" );
+          stringBuilder.append( "  }\n\n" );
+        }
       }
-      
     }
     
     //
@@ -611,7 +700,7 @@ public class FacadeCreatorHelper
   private static List<String> determineReplacementTokensForExampleValues( List<String> exampleValueList, String regexTokenPattern )
   {
     //
-    List<String> retlist = new ArrayList<String>();
+    Set<String> retset = new LinkedHashSet<String>();
     
     //
     final Pattern pattern = Pattern.compile( regexTokenPattern );
@@ -620,12 +709,12 @@ public class FacadeCreatorHelper
       Matcher matcher = pattern.matcher( exampleValue );
       while ( matcher.find() )
       {
-        retlist.add( matcher.group() );
+        retset.add( matcher.group() );
       }
     }
     
     //
-    return retlist;
+    return new ArrayList<String>( retset );
   }
   
   protected static class CamelCaseTokenElementToMapEntryConverter implements

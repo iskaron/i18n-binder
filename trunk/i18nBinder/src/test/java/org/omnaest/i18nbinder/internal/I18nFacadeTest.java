@@ -17,11 +17,14 @@ package org.omnaest.i18nbinder.internal;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Test;
+import org.omnaest.i18nbinder.internal.I18nFacade.I18n._673numericalTest;
 
 public class I18nFacadeTest
 {
@@ -42,5 +45,15 @@ public class I18nFacadeTest
     placeholderToReplacementMap.put( "arbitrary", "another" );
     assertEquals( "value3 with another replacement",
                   i18nFacade.I18n._673numericalTest.getMyPropertyKey3( placeholderToReplacementMap ) );
+    
+    //
+    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translate( "my.property.key1" ) );
+    
+    //
+    String[] keys = _673numericalTest.allPropertyKeys();
+    Map<String, String> map = i18nFacade.I18n._673numericalTest.translate( keys );
+    assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
+    assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
+                  new ArrayList<String>( map.values() ) );
   }
 }

@@ -1,5 +1,6 @@
 package org.omnaest.i18nbinder.internal;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -286,6 +287,81 @@ public class I18nFacade
         return getMyPropertyKey3( this.locale, placeholderToReplacementMap );
       }
       
+      /**
+       * Returns the translated property key for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param key
+       * @see _673numericalTest
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public static String translate( Locale locale, String key )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
+        return resourceBundle.getString( key );
+      }
+      
+      /**
+       * Returns the translated property key for the predefined {@link Locale}
+       * 
+       * @see #translate(Locale, String)
+       * @see _673numericalTest
+       * @see #translate(Locale, String)
+       * @see #translate(String[])
+       */
+      public String translate( String key )
+      {
+        return translate( this.locale, key );
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param keys
+       * @see _673numericalTest
+       * @see #allPropertyKeys()
+       * @see #translate(String[])
+       * @see #translate(Locale, String)
+       */
+      public static Map<String, String> translate( Locale locale, String... keys )
+      {
+        Map<String, String> retmap = new LinkedHashMap<String, String>();
+        for ( String key : keys )
+        {
+          retmap.put( key, translate( locale, key ) );
+        }
+        return retmap;
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the predefined
+       * {@link Locale}.
+       * 
+       * @param keys
+       * @see _673numericalTest
+       * @see #allPropertyKeys()
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public Map<String, String> translate( String... keys )
+      {
+        return translate( this.locale, keys );
+      }
+      
+      /**
+       * Returns all available property keys
+       * 
+       * @see _673numericalTest
+       * @see #translate(String[])
+       * @see #translate(Locale, String[])
+       */
+      public static String[] allPropertyKeys()
+      {
+        return new String[] { "my.property.key1", "my.property.key3" };
+      }
+      
     }
     
     /**
@@ -383,6 +459,81 @@ public class I18nFacade
         return getMyPropertyKey2( this.locale );
       }
       
+      /**
+       * Returns the translated property key for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param key
+       * @see AdminTest
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public static String translate( Locale locale, String key )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
+        return resourceBundle.getString( key );
+      }
+      
+      /**
+       * Returns the translated property key for the predefined {@link Locale}
+       * 
+       * @see #translate(Locale, String)
+       * @see AdminTest
+       * @see #translate(Locale, String)
+       * @see #translate(String[])
+       */
+      public String translate( String key )
+      {
+        return translate( this.locale, key );
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param keys
+       * @see AdminTest
+       * @see #allPropertyKeys()
+       * @see #translate(String[])
+       * @see #translate(Locale, String)
+       */
+      public static Map<String, String> translate( Locale locale, String... keys )
+      {
+        Map<String, String> retmap = new LinkedHashMap<String, String>();
+        for ( String key : keys )
+        {
+          retmap.put( key, translate( locale, key ) );
+        }
+        return retmap;
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the predefined
+       * {@link Locale}.
+       * 
+       * @param keys
+       * @see AdminTest
+       * @see #allPropertyKeys()
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public Map<String, String> translate( String... keys )
+      {
+        return translate( this.locale, keys );
+      }
+      
+      /**
+       * Returns all available property keys
+       * 
+       * @see AdminTest
+       * @see #translate(String[])
+       * @see #translate(Locale, String[])
+       */
+      public static String[] allPropertyKeys()
+      {
+        return new String[] { "my.property.key1", "my.property.key2" };
+      }
+      
     }
     
     /**
@@ -441,6 +592,81 @@ public class I18nFacade
       public String getMyPropertyKey9()
       {
         return getMyPropertyKey9( this.locale );
+      }
+      
+      /**
+       * Returns the translated property key for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param key
+       * @see LocalelessTest
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public static String translate( Locale locale, String key )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
+        return resourceBundle.getString( key );
+      }
+      
+      /**
+       * Returns the translated property key for the predefined {@link Locale}
+       * 
+       * @see #translate(Locale, String)
+       * @see LocalelessTest
+       * @see #translate(Locale, String)
+       * @see #translate(String[])
+       */
+      public String translate( String key )
+      {
+        return translate( this.locale, key );
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param keys
+       * @see LocalelessTest
+       * @see #allPropertyKeys()
+       * @see #translate(String[])
+       * @see #translate(Locale, String)
+       */
+      public static Map<String, String> translate( Locale locale, String... keys )
+      {
+        Map<String, String> retmap = new LinkedHashMap<String, String>();
+        for ( String key : keys )
+        {
+          retmap.put( key, translate( locale, key ) );
+        }
+        return retmap;
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the predefined
+       * {@link Locale}.
+       * 
+       * @param keys
+       * @see LocalelessTest
+       * @see #allPropertyKeys()
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public Map<String, String> translate( String... keys )
+      {
+        return translate( this.locale, keys );
+      }
+      
+      /**
+       * Returns all available property keys
+       * 
+       * @see LocalelessTest
+       * @see #translate(String[])
+       * @see #translate(Locale, String[])
+       */
+      public static String[] allPropertyKeys()
+      {
+        return new String[] { "my.property.key9" };
       }
       
     }
@@ -569,6 +795,81 @@ public class I18nFacade
       public String getMyPropertyKey4()
       {
         return getMyPropertyKey4( this.locale );
+      }
+      
+      /**
+       * Returns the translated property key for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param key
+       * @see ViewTest
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public static String translate( Locale locale, String key )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
+        return resourceBundle.getString( key );
+      }
+      
+      /**
+       * Returns the translated property key for the predefined {@link Locale}
+       * 
+       * @see #translate(Locale, String)
+       * @see ViewTest
+       * @see #translate(Locale, String)
+       * @see #translate(String[])
+       */
+      public String translate( String key )
+      {
+        return translate( this.locale, key );
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
+       * 
+       * @param locale
+       * @param keys
+       * @see ViewTest
+       * @see #allPropertyKeys()
+       * @see #translate(String[])
+       * @see #translate(Locale, String)
+       */
+      public static Map<String, String> translate( Locale locale, String... keys )
+      {
+        Map<String, String> retmap = new LinkedHashMap<String, String>();
+        for ( String key : keys )
+        {
+          retmap.put( key, translate( locale, key ) );
+        }
+        return retmap;
+      }
+      
+      /**
+       * Returns a translation {@link Map} with the given property keys and their respective values for the predefined
+       * {@link Locale}.
+       * 
+       * @param keys
+       * @see ViewTest
+       * @see #allPropertyKeys()
+       * @see #translate(String)
+       * @see #translate(Locale, String[])
+       */
+      public Map<String, String> translate( String... keys )
+      {
+        return translate( this.locale, keys );
+      }
+      
+      /**
+       * Returns all available property keys
+       * 
+       * @see ViewTest
+       * @see #translate(String[])
+       * @see #translate(Locale, String[])
+       */
+      public static String[] allPropertyKeys()
+      {
+        return new String[] { "my.property.key1", "my.property.key4", "my.property.key3" };
       }
       
     }
