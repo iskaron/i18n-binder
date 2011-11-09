@@ -31,6 +31,7 @@ public class I18nFacadeTest
     Locale locale = Locale.US;
     I18nFacade i18nFacade = new I18nFacade( locale );
     assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.getMyPropertyKey1() );
+    assertEquals( "value3 with {arbitrary} replacement", i18nFacade.I18n._673numericalTest.getMyPropertyKey3() );
     assertEquals( "value2", i18nFacade.I18n.AdminTest.getMyPropertyKey2() );
     
     //

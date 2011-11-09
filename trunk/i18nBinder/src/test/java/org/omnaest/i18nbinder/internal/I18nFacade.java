@@ -190,6 +190,10 @@ public class I18nFacade
       /**
        * Returns the value of the property key <b>my.property.key3</b> for the given {@link Locale}. <br>
        * <br>
+       * Placeholders:
+       * <ul>
+       * <li><b>{arbitrary}</b></li>
+       * </ul>
        * Examples:
        * <ul>
        * <li>en_US=value3 with {arbitrary} replacement</li>
@@ -208,6 +212,10 @@ public class I18nFacade
       /**
        * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}. <br>
        * <br>
+       * Placeholders:
+       * <ul>
+       * <li><b>{arbitrary}</b></li>
+       * </ul>
        * Examples:
        * <ul>
        * <li>en_US=value3 with {arbitrary} replacement</li>
@@ -222,7 +230,9 @@ public class I18nFacade
       
       /**
        * Returns the value of the property key <b>my.property.key3</b> for the given {@link Locale} with arbitrary placeholder tag
-       * like {example} replaced by the given values. <br>
+       * like {example} replaced by the given values.<br>
+       * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key "example"
+       * has to be set. <br>
        * <br>
        * Placeholders:
        * <ul>
@@ -256,7 +266,8 @@ public class I18nFacade
       
       /**
        * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale} with arbitrary
-       * placeholder tag like {example} replaced by the given values. <br>
+       * placeholder tag like {example} replaced by the given values. The given placeholderToReplacementMap needs the placeholder
+       * tag name and a value. E.g. for {example} the key "example" has to be set. <br>
        * <br>
        * Placeholders:
        * <ul>

@@ -450,7 +450,7 @@ public class FacadeCreatorHelper
             stringBuilder.append( "  /**\n" );
             stringBuilder.append( "   * Returns the value of the property key <b>" + propertyKey
                                   + "</b> for the given {@link Locale}.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @param locale \n" );
             stringBuilder.append( "   * @see " + className + "\n" );
@@ -466,7 +466,7 @@ public class FacadeCreatorHelper
             stringBuilder.append( "  /**\n" );
             stringBuilder.append( "   * Returns the value of the property key <b>" + propertyKey
                                   + "</b> for the predefined {@link Locale}.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   */ \n" );
@@ -529,7 +529,8 @@ public class FacadeCreatorHelper
             stringBuilder.append( "  /**\n" );
             stringBuilder.append( "   * Returns the value of the property key <b>"
                                   + propertyKey
-                                  + "</b> for the given {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.\n" );
+                                  + "</b> for the given {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.<br>\n" );
+            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
@@ -559,6 +560,7 @@ public class FacadeCreatorHelper
             stringBuilder.append( "   * Returns the value of the property key <b>"
                                   + propertyKey
                                   + "</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.\n" );
+            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
