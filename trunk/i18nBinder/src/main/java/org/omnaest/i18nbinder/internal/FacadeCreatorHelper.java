@@ -38,8 +38,8 @@ import org.omnaest.i18nbinder.grouping.FileGrouper;
 import org.omnaest.utils.structure.collection.ListUtils;
 import org.omnaest.utils.structure.collection.ListUtils.ElementFilter;
 import org.omnaest.utils.structure.element.converter.ElementConverterElementToMapEntry;
-import org.omnaest.utils.structure.hierarchy.MonoHierarchy;
-import org.omnaest.utils.structure.hierarchy.MonoHierarchy.TokenElementPath;
+import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy;
+import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy.TokenElementPath;
 import org.omnaest.utils.structure.map.SimpleEntry;
 
 /**
@@ -162,7 +162,7 @@ public class FacadeCreatorHelper
       //facade source code
       {
         //
-        MonoHierarchy<String, PropertyKeyAndValues> monoHierarchy = new MonoHierarchy<String, PropertyKeyAndValues>();
+        TokenMonoHierarchy<String, PropertyKeyAndValues> TokenMonoHierarchy = new TokenMonoHierarchy<String, PropertyKeyAndValues>();
         
         //
         for ( FileGroupToPropertiesAdapter fileGroupToPropertiesAdapter : fileGroupToPropertiesAdapterList )
@@ -245,13 +245,13 @@ public class FacadeCreatorHelper
               
               //                 
               TokenElementPath<String> tokenElementPath = new TokenElementPath<String>( tokenPathElementList );
-              monoHierarchy.addTokenElementPathWithValues( tokenElementPath, propertyKeyAndValues );
+              TokenMonoHierarchy.addTokenElementPathWithValues( tokenElementPath, propertyKeyAndValues );
             }
           }
         }
         
         //
-        retval = buildFacadeSource( monoHierarchy, packageName, javaFacadeFileName );
+        retval = buildFacadeSource( TokenMonoHierarchy, packageName, javaFacadeFileName );
       }
     }
     
@@ -265,7 +265,7 @@ public class FacadeCreatorHelper
     public List<String> valueList   = new ArrayList<String>();
   }
   
-  private static String buildFacadeSource( MonoHierarchy<String, PropertyKeyAndValues> monoHierarchy,
+  private static String buildFacadeSource( TokenMonoHierarchy<String, PropertyKeyAndValues> TokenMonoHierarchy,
                                            String packageName,
                                            String javaFacadeFileName )
   {
@@ -273,7 +273,7 @@ public class FacadeCreatorHelper
     StringBuilder retval = new StringBuilder();
     
     //
-    MonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator = monoHierarchy.getNavigator();
+    TokenMonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator = TokenMonoHierarchy.getNavigator();
     
     //
     retval.append( StringUtils.isNotBlank( packageName ) ? "package " + packageName + ";\n\n" : "" );
@@ -295,7 +295,7 @@ public class FacadeCreatorHelper
   private static void buildFacadeSource( StringBuilder stringBuilder,
                                          String className,
                                          boolean staticModifier,
-                                         MonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator )
+                                         TokenMonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator )
   {
     //
     Map<String, String> subClassNameToTokenElementMap = new LinkedHashMap<String, String>();
