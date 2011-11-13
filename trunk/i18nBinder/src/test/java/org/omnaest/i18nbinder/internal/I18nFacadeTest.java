@@ -22,7 +22,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.MissingResourceException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Test;
 import org.omnaest.i18nbinder.internal.I18nFacade.I18n._673numericalTest;
 
@@ -48,12 +50,67 @@ public class I18nFacadeTest
     
     //
     assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translate( "my.property.key1" ) );
+    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.tryTranslate( "my.property.key1" ) );
     
     //
-    String[] keys = _673numericalTest.allPropertyKeys();
+    {
+      //
+      String[] keys = i18nFacade.I18n._673numericalTest.allPropertyKeys();
+      Map<String, String> map = i18nFacade.I18n._673numericalTest.translate( keys );
+      assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
+      assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
+                    new ArrayList<String>( map.values() ) );
+    }
+    
+  }
+  
+  @Test(expected = MissingResourceException.class)
+  public void testTranslateWithMissingKey()
+  {
+    //
+    Locale locale = Locale.US;
+    I18nFacade i18nFacade = new I18nFacade( locale );
+    assertEquals( null, i18nFacade.I18n._673numericalTest.translate( "non.existing.key" ) );
+  }
+  
+  @Test
+  public void testTryTranslateWithMissingKey()
+  {
+    //
+    Locale locale = Locale.US;
+    I18nFacade i18nFacade = new I18nFacade( locale );
+    assertEquals( null, i18nFacade.I18n._673numericalTest.tryTranslate( "non.existing.key" ) );
+  }
+  
+  @Test(expected = MissingResourceException.class)
+  public void testTranslationMapWithMissingKey()
+  {
+    //
+    Locale locale = Locale.US;
+    I18nFacade i18nFacade = new I18nFacade( locale );
+    
+    //
+    String[] keys = ArrayUtils.add( i18nFacade.I18n._673numericalTest.allPropertyKeys(), 0, "missingKey" );
     Map<String, String> map = i18nFacade.I18n._673numericalTest.translate( keys );
     assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
     assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
                   new ArrayList<String>( map.values() ) );
+    
+  }
+  
+  @Test
+  public void testTryTranslationMapWithMissingKey()
+  {
+    //
+    Locale locale = Locale.US;
+    I18nFacade i18nFacade = new I18nFacade( locale );
+    
+    //
+    String[] keys = ArrayUtils.add( new _673numericalTest( locale ).allPropertyKeys(), 0, "missingKey" );
+    Map<String, String> map = i18nFacade.I18n._673numericalTest.tryTranslate( keys );
+    assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
+    assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
+                  new ArrayList<String>( map.values() ) );
+    
   }
 }
