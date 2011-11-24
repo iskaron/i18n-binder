@@ -475,12 +475,13 @@ public class FacadeCreatorHelper
                                   + "</b> for the given {@link Locale}.\n" );
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
-            stringBuilder.append( "   * @param locale \n" );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale locale)\n" );
+            stringBuilder.append( "   * @param locale \n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public static String get" + propertyName + "(Locale locale)\n" );
             stringBuilder.append( "  {\n" );
-            stringBuilder.append( "    String key = \"" + propertyKey + "\";\n" );
+            stringBuilder.append( "    final String key = \"" + propertyKey + "\";\n" );
             stringBuilder.append( "    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
             stringBuilder.append( "    return resourceBundle.getString( key );\n" );
             stringBuilder.append( "  }\n\n" );
@@ -492,10 +493,51 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "()\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String get" + propertyName + "()\n" );
             stringBuilder.append( "  {\n" );
             stringBuilder.append( "    return get" + propertyName + "( this.locale );\n" );
+            stringBuilder.append( "  }\n\n" );
+          }
+          
+          {
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Tries to return the value of the property key <b>" + propertyKey
+                                  + "</b> for the given {@link Locale}.<br><br>\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}.\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale locale)\n" );
+            stringBuilder.append( "   * @param locale \n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public static String tryGet" + propertyName + "(Locale locale)\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    try\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return get" + propertyName + "( locale );\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "    catch ( MissingResourceException e )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return null;\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "  }\n\n" );
+            
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Tries to return the value of the property key <b>" + propertyKey
+                                  + "</b> for the predefined {@link Locale}.<br><br>\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "()\n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public String tryGet" + propertyName + "()\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    return tryGet" + propertyName + "( this.locale );\n" );
             stringBuilder.append( "  }\n\n" );
           }
           
@@ -511,6 +553,7 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale,String[])\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
@@ -537,11 +580,56 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(String[])\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String get" + propertyName + "( String... tokens )\n" );
             stringBuilder.append( "  {\n" );
             stringBuilder.append( "    return get" + propertyName + "( this.locale, tokens );\n" );
+            stringBuilder.append( "  }\n\n" );
+            
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Tries to return the value of the property key <b>"
+                                  + propertyKey
+                                  + "</b> for the given {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.<br><br>\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
+            stringBuilder.append( "   * If there are not enough parameters existing placeholders will remain unreplaced.\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale,String[])\n" );
+            stringBuilder.append( "   * @param locale\n" );
+            stringBuilder.append( "   * @param tokens\n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public static String tryGet" + propertyName + "( Locale locale, String... tokens )\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    try\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return get" + propertyName + "( locale, tokens );\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "    catch ( MissingResourceException e )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return null;\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "  }\n\n" );
+            
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Tries to return the value of the property key <b>"
+                                  + propertyKey
+                                  + "</b> for the predefined {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
+            stringBuilder.append( "   * If there are not enough parameters existing placeholders will remain unreplaced.\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(String[])\n" );
+            stringBuilder.append( "   * @param tokens\n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public String tryGet" + propertyName + "( String... tokens )\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    return tryGet" + propertyName + "( this.locale, tokens );\n" );
             stringBuilder.append( "  }\n\n" );
           }
           
@@ -557,6 +645,7 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale,Map)\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
@@ -587,11 +676,58 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Map)\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String get" + propertyName + "( Map<String, String> placeholderToReplacementMap )\n" );
             stringBuilder.append( "  {\n" );
             stringBuilder.append( "    return get" + propertyName + "( this.locale, placeholderToReplacementMap );\n" );
+            stringBuilder.append( "  }\n\n" );
+            
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Tries to return the value of the property key <b>"
+                                  + propertyKey
+                                  + "</b> for the given {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.<br>\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
+            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale,Map)\n" );
+            stringBuilder.append( "   * @param locale\n" );
+            stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public static String tryGet" + propertyName
+                                  + "( Locale locale, Map<String, String> placeholderToReplacementMap )\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    try\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return get" + propertyName + "( locale, placeholderToReplacementMap );\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "    catch ( MissingResourceException e )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return null;\n" );
+            stringBuilder.append( "    }\n" );
+            stringBuilder.append( "  }\n\n" );
+            
+            //
+            stringBuilder.append( "  /**\n" );
+            stringBuilder.append( "   * Returns the value of the property key <b>"
+                                  + propertyKey
+                                  + "</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.\n" );
+            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
+            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
+            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
+            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale, Map)\n" );
+            stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
+            stringBuilder.append( "   */ \n" );
+            stringBuilder.append( "  public String tryGet" + propertyName
+                                  + "( Map<String, String> placeholderToReplacementMap )\n" );
+            stringBuilder.append( "  {\n" );
+            stringBuilder.append( "    return tryGet" + propertyName + "( this.locale, placeholderToReplacementMap );\n" );
             stringBuilder.append( "  }\n\n" );
           }
         }
@@ -638,10 +774,10 @@ public class FacadeCreatorHelper
           stringBuilder.append( "   */ \n" );
           stringBuilder.append( "  public static String tryTranslate(Locale locale, String key)\n" );
           stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
           stringBuilder.append( "    String retval = null;\n" );
           stringBuilder.append( "    try\n" );
           stringBuilder.append( "    {\n" );
+          stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
           stringBuilder.append( "      retval = resourceBundle.getString( key );\n" );
           stringBuilder.append( "    }\n" );
           stringBuilder.append( "    catch (MissingResourceException e) {}\n" );

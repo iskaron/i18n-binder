@@ -38,15 +38,19 @@ public class I18nFacadeTest
     assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.getMyPropertyKey1() );
     assertEquals( "value3 with {arbitrary} replacement", i18nFacade.I18n._673numericalTest.getMyPropertyKey3() );
     assertEquals( "value2", i18nFacade.I18n.AdminTest.getMyPropertyKey2() );
+    assertEquals( "value2", i18nFacade.I18n.AdminTest.tryGetMyPropertyKey2() );
     
     //
     assertEquals( "value a and b", i18nFacade.I18n._673numericalTest.getMyPropertyKey1( "a", "b" ) );
+    assertEquals( "value a and b", i18nFacade.I18n._673numericalTest.tryGetMyPropertyKey1( "a", "b" ) );
     
     //
     Map<String, String> placeholderToReplacementMap = new HashMap<String, String>();
     placeholderToReplacementMap.put( "arbitrary", "another" );
     assertEquals( "value3 with another replacement",
                   i18nFacade.I18n._673numericalTest.getMyPropertyKey3( placeholderToReplacementMap ) );
+    assertEquals( "value3 with another replacement",
+                  i18nFacade.I18n._673numericalTest.tryGetMyPropertyKey3( placeholderToReplacementMap ) );
     
     //
     assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translate( "my.property.key1" ) );
