@@ -91,6 +91,9 @@ public class ModifierHelper
       List<TableRow> tableRowList = xlsFile.getTableRowList();
       
       //
+      final List<String> missingPropertyInformationList = new ArrayList<String>();
+      
+      //
       List<String> localeList = new ArrayList<String>();
       {
         //
@@ -124,25 +127,36 @@ public class ModifierHelper
         for ( String locale : localeList )
         {
           //
-          String value = tableRow.get( index++ );
-          
-          //
-          String fileName = fileNameLocaleIndependent.replaceAll( Pattern.quote( GROUPING_PATTERN_REPLACEMENT_PATTERN_STRING ),
-                                                                  locale );
-          
-          //
-          if ( !filenameToPropertyKeyToValueMap.containsKey( fileName ) )
+          try
           {
-            filenameToPropertyKeyToValueMap.put( fileName, new PropertyKeyToValueMap() );
+            //
+            String value = tableRow.get( index++ );
+            
+            //
+            String fileName = fileNameLocaleIndependent.replaceAll( Pattern.quote( GROUPING_PATTERN_REPLACEMENT_PATTERN_STRING ),
+                                                                    locale );
+            
+            //
+            if ( !filenameToPropertyKeyToValueMap.containsKey( fileName ) )
+            {
+              filenameToPropertyKeyToValueMap.put( fileName, new PropertyKeyToValueMap() );
+            }
+            
+            //
+            PropertyKeyToValueMap propertyKeyToValueMap = filenameToPropertyKeyToValueMap.get( fileName );
+            
+            //
+            if ( value != null )
+            {
+              propertyKeyToValueMap.put( propertyKey, value );
+            }
           }
-          
-          //
-          PropertyKeyToValueMap propertyKeyToValueMap = filenameToPropertyKeyToValueMap.get( fileName );
-          
-          //
-          if ( value != null )
+          catch ( Exception e )
           {
-            propertyKeyToValueMap.put( propertyKey, value );
+            //
+            String message = "Missing property value within " + fileNameLocaleIndependent + " for locale " + locale
+                             + " and property" + propertyKey;
+            missingPropertyInformationList.add( message );
           }
         }
         
@@ -205,6 +219,17 @@ public class ModifierHelper
         if ( contentChanged )
         {
           propertyFile.store();
+        }
+      }
+      
+      //
+      if ( !missingPropertyInformationList.isEmpty() )
+      {
+        //
+        ModifierHelper.logger.info( "Following property information were incomplete..." );
+        for ( String missingPropertyInformation : missingPropertyInformationList )
+        {
+          ModifierHelper.logger.info( missingPropertyInformation );
         }
       }
     }
