@@ -14,7 +14,144 @@ import java.util.ResourceBundle;
  */ 
 public class I18nFacade {
   /** @see I18n */
-  public I18n I18n = null;
+  public final I18n I18n;
+
+  /**
+   * A {@link Translator} offers several methods to translate arbitrary keys into their i18n counterpart based on the initially
+   * given {@link Locale}.
+   * 
+   * @see #translate(String)
+   * @see #translate(String[]) 
+   * @see #tryTranslate(String) 
+   * @see #tryTranslate(String[]) 
+   * @see #allPropertyKeys() 
+   */ 
+  public static class Translator {
+
+    private final String baseName;
+    private final Locale locale;
+
+    /**
+     * @see Translator
+     * @param baseName
+     * @param locale
+     */ 
+    public Translator( String baseName, Locale locale )
+    {
+      super();
+      this.baseName = baseName;
+      this.locale = locale;
+    }
+
+    private String translate(Locale locale, String key)
+    {
+      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
+      return resourceBundle.getString( key );
+    }
+
+    /**
+     * Returns the translated property key for the predefined {@link Locale}
+     * @see Translator
+     * @see #translate(Locale, String)
+     * @see #tryTranslate(String)
+     * @see #translate(String[])
+     */ 
+    public String translate( String key )
+    {
+      return translate( this.locale, key );
+    }
+
+    private String tryTranslate(Locale locale, String key)
+    {
+      String retval = null;
+      try
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
+        retval = resourceBundle.getString( key );
+      }
+      catch (MissingResourceException e) {}
+      return retval;
+    }
+
+    /**
+     * Returns the translated property key for the predefined {@link Locale}
+     * @see Translator
+     * @see #translate(String)
+     * @see #tryTranslate(String[])
+     */ 
+    public String tryTranslate( String key )
+    {
+      return tryTranslate( this.locale, key );
+    }
+
+    private  Map<String, String> translate( Locale locale, String... keys )
+    {
+      Map<String, String> retmap = new LinkedHashMap<String, String>();
+      for ( String key : keys )
+      {
+        retmap.put( key, translate( locale, key ) );
+      }
+      return retmap;
+    }
+
+    /**
+     * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.
+     * @param keys 
+     * @see Translator
+     * @see #allPropertyKeys()
+     * @see #translate(String)
+     * @see #tryTranslate(String[])
+     */ 
+    public Map<String, String> translate( String... keys )
+    {
+      return translate( this.locale, keys );
+    }
+
+    private Map<String, String> tryTranslate( Locale locale, String... keys )
+    {
+      Map<String, String> retmap = new LinkedHashMap<String, String>();
+      for ( String key : keys )
+      {
+        try
+        {
+          retmap.put( key, translate( locale, key ) );
+        }
+        catch (MissingResourceException e) {}
+      }
+      return retmap;
+    }
+
+    /**
+     * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
+     * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
+     * @param keys 
+     * @see Translator
+     * @see #allPropertyKeys()
+     * @see #translate(String)
+     */ 
+    public Map<String, String> tryTranslate( String... keys )
+    {
+      return tryTranslate( this.locale, keys );
+    }
+
+    private String[] allPropertyKeys(Locale locale)
+    {
+      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
+      return resourceBundle.keySet().toArray( new String[0] );
+    }
+
+    /**
+     * Returns all available property keys for the predefined {@link Locale}. 
+     * @see Translator
+     * @see #translate(String[])
+     * @see #tryTranslate(String[])
+     */ 
+    public String[] allPropertyKeys()
+    {
+      return allPropertyKeys( this.locale );    }
+
+  }
+
 
   /**
    * @see I18nFacade
@@ -37,13 +174,13 @@ public class I18nFacade {
  */ 
 public static class I18n {
   /** @see _673numericalTest */
-  public _673numericalTest _673numericalTest = null;
+  public final _673numericalTest _673numericalTest;
   /** @see AdminTest */
-  public AdminTest AdminTest = null;
+  public final AdminTest AdminTest;
   /** @see LocalelessTest */
-  public LocalelessTest LocalelessTest = null;
+  public final LocalelessTest LocalelessTest;
   /** @see ViewTest */
-  public ViewTest ViewTest = null;
+  public final ViewTest ViewTest;
 
   /**
    * @see I18n
@@ -62,20 +199,32 @@ public static class I18n {
  * To modify please adapt the underlying property files.<br><br>
  * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>
  * Resource base: <b>i18n.673numericalTest</b>
- * @see #allPropertyKeys()
- * @see #allPropertyKeys(Locale)
- * @see #translate(String)
- * @see #translate(Locale, String)
- * @see #translate(String[])
- * @see #translate(Locale, String[])
- * @see #tryTranslate(String)
- * @see #tryTranslate(Locale, String)
- * @see #tryTranslate(String[])
- * @see #tryTranslate(Locale, String[])
+ * <br><br>
+ * <h1>Examples:</h1>
+ * <table border="1">
+ * <thead>
+ * <tr>
+ * <th>key</th>
+ * <th>examples</th>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td rowspan="1">my.property.key1</td>
+ * <td>en_US=value {0} and {1}</td>
+ * </tr>
+ * <tr>
+ * <td rowspan="1">my.property.key3</td>
+ * <td>en_US=value3 with {arbitrary} replacement</td>
+ * </tr>
+ * </tbody>
+ * </table><br><br>
+ * @see #translator()
+ * @see #translator(Locale)
  */ 
 public static class _673numericalTest {
   private final Locale locale;
-    private final static String baseName = "i18n.673numericalTest";
+  private final static String baseName = "i18n.673numericalTest";
 
   /**
    * @see _673numericalTest
@@ -102,6 +251,7 @@ public static class _673numericalTest {
    * </ul>
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey1(Locale locale)
+   * @see #getMyPropertyKey1()
    * @param locale 
    */ 
   public static String getMyPropertyKey1(Locale locale)
@@ -112,20 +262,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey1()
+   * @see #getMyPropertyKey1(Locale)
    */ 
   public String getMyPropertyKey1()
   {
@@ -133,21 +273,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey1(Locale locale)
+   * @see #tryGetMyPropertyKey1()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey1(Locale locale)
@@ -163,21 +292,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey1()
+   * @see #tryGetMyPropertyKey1(Locale)
    */ 
   public String tryGetMyPropertyKey1()
   {
@@ -200,6 +318,7 @@ public static class _673numericalTest {
    * </ul>
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey1(Locale,String[])
+   * @see #getMyPropertyKey1(String[])
    * @param locale
    * @param tokens
    */ 
@@ -218,20 +337,9 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.
-   * If there are not enough parameters existing placeholders will remain unreplaced.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(Locale,String[])} using the predefined {@link Locale}.
    * @see _673numericalTest
+   * @see #getMyPropertyKey1(Locale,String[])
    * @see #tryGetMyPropertyKey1(String[])
    * @param tokens
    */ 
@@ -241,22 +349,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the given {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.<br><br>
-   * Does not throw any {@link Exception}.<br><br>
-   * If there are not enough parameters existing placeholders will remain unreplaced.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(Locale,String[])} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey1(Locale,String[])
+   * @see #tryGetMyPropertyKey1(String[])
    * @param locale
    * @param tokens
    */ 
@@ -273,22 +369,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the predefined {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.
-   * Does not throw any {@link Exception}.<br><br>
-   * If there are not enough parameters existing placeholders will remain unreplaced.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{0}</b></li>
-   * <li><b>{1}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value {0} and {1}</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(String[])} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey1(String[])
+   * @see #tryGetMyPropertyKey1(Locale,String[])
    * @param tokens
    */ 
   public String tryGetMyPropertyKey1( String... tokens )
@@ -310,6 +394,7 @@ public static class _673numericalTest {
    * </ul>
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey3(Locale locale)
+   * @see #getMyPropertyKey3()
    * @param locale 
    */ 
   public static String getMyPropertyKey3(Locale locale)
@@ -320,19 +405,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey3()
+   * @see #getMyPropertyKey3(Locale)
    */ 
   public String getMyPropertyKey3()
   {
@@ -340,20 +416,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key3</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3(Locale)} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey3(Locale locale)
+   * @see #tryGetMyPropertyKey3()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey3(Locale locale)
@@ -369,20 +435,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3()} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey3()
+   * @see #tryGetMyPropertyKey3(Locale)
    */ 
   public String tryGetMyPropertyKey3()
   {
@@ -404,6 +460,7 @@ public static class _673numericalTest {
    * </ul>
    * @see _673numericalTest
    * @see #tryGetMyPropertyKey3(Locale,Map)
+   * @see #getMyPropertyKey3(Map)
    * @param locale
    * @param placeholderToReplacementMap
    */ 
@@ -425,19 +482,9 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.
-   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key "example" has to be set.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3(Locale,Map)} using the predefined {@link Locale}.
    * @see _673numericalTest
+   * @see #getMyPropertyKey3(Locale,Map)
    * @see #tryGetMyPropertyKey3(Map)
    * @param placeholderToReplacementMap
    */ 
@@ -447,21 +494,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key3</b> for the given {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.<br>
-   * Does not throw any {@link Exception}.<br><br>
-   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key "example" has to be set.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3(Locale,Map)} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey3(Locale,Map)
+   * @see #tryGetMyPropertyKey3(Map)
    * @param locale
    * @param placeholderToReplacementMap
    */ 
@@ -478,21 +514,10 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.
-   * Does not throw any {@link Exception}.<br><br>
-   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key "example" has to be set.
-   * <br><br>
-   * Placeholders:
-   * <ul>
-   * <li><b>{arbitrary}</b></li>
-   * </ul>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3 with {arbitrary} replacement</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3(Map)} but does not throw any {@link MissingResourceException}.
    * @see _673numericalTest
    * @see #getMyPropertyKey3(Locale, Map)
+   * @see #tryGetMyPropertyKey3(Locale, Map)
    * @param placeholderToReplacementMap
    */ 
   public String tryGetMyPropertyKey3( Map<String, String> placeholderToReplacementMap )
@@ -501,161 +526,23 @@ public static class _673numericalTest {
   }
 
   /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see _673numericalTest
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String translate(Locale locale, String key)
+   * @see #translator()
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale)
   {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    return new Translator( baseName, locale );
   }
 
   /**
-   * Returns the translated property key for the predefined {@link Locale}
+   * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see _673numericalTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String)
-   * @see #translate(String[])
-   */ 
-  public String translate( String key )
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public Translator translator()
   {
-    return translate( this.locale, key );
-  }
-
-  /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
-   * @see _673numericalTest
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String tryTranslate(Locale locale, String key)
-  {
-    String retval = null;
-    try
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-      retval = resourceBundle.getString( key );
-    }
-    catch (MissingResourceException e) {}
-    return retval;
-  }
-
-  /**
-   * Returns the translated property key for the predefined {@link Locale}
-   * @see _673numericalTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String[])
-   */ 
-  public String tryTranslate( String key )
-  {
-    return tryTranslate( this.locale, key );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
-   * @param locale 
-   * @param keys 
-   * @see _673numericalTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public static Map<String, String> translate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      retmap.put( key, translate( locale, key ) );
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.
-   * @param keys 
-   * @see _673numericalTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #translate(Locale, String[])
-   * @see #tryTranslate(Locale, String[])
-   * @see #tryTranslate(String[])
-   */ 
-  public Map<String, String> translate( String... keys )
-  {
-    return translate( this.locale, keys );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param locale 
-   * @param keys 
-   * @see _673numericalTest
-   * @see #allPropertyKeys()
-   * @see #translate(Locale, String[])
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   */ 
-  public static Map<String, String> tryTranslate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      try
-      {
-        retmap.put( key, translate( locale, key ) );
-      }
-      catch (MissingResourceException e) {}
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param keys 
-   * @see _673numericalTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public Map<String, String> tryTranslate( String... keys )
-  {
-    return tryTranslate( this.locale, keys );
-  }
-
-  /**
-   * Returns all available property keys for the predefined {@link Locale}. 
-   * @see _673numericalTest
-   * @see #allPropertyKeys(Locale)
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public String[] allPropertyKeys()
-  {
-    return allPropertyKeys( this.locale );  }
-
-  /**
-   * Returns all available property keys for the given {@link Locale}. 
-   * @param locale 
-   * @see _673numericalTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public static String[] allPropertyKeys(Locale locale)
-  {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.keySet().toArray( new String[0] );
+    return translator( this.locale );
   }
 
 }
@@ -665,20 +552,38 @@ public static class _673numericalTest {
  * To modify please adapt the underlying property files.<br><br>
  * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>
  * Resource base: <b>i18n.adminTest</b>
- * @see #allPropertyKeys()
- * @see #allPropertyKeys(Locale)
- * @see #translate(String)
- * @see #translate(Locale, String)
- * @see #translate(String[])
- * @see #translate(Locale, String[])
- * @see #tryTranslate(String)
- * @see #tryTranslate(Locale, String)
- * @see #tryTranslate(String[])
- * @see #tryTranslate(Locale, String[])
+ * <br><br>
+ * <h1>Examples:</h1>
+ * <table border="1">
+ * <thead>
+ * <tr>
+ * <th>key</th>
+ * <th>examples</th>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td rowspan="2">my.property.key1</td>
+ * <td>de_DE=wert1</td>
+ * </tr>
+ * <tr>
+ * <td><small>en_US=value1</small></td>
+ * </tr>
+ * <tr>
+ * <td rowspan="2">my.property.key2</td>
+ * <td>de_DE=wert2</td>
+ * </tr>
+ * <tr>
+ * <td><small>en_US=value2</small></td>
+ * </tr>
+ * </tbody>
+ * </table><br><br>
+ * @see #translator()
+ * @see #translator(Locale)
  */ 
 public static class AdminTest {
   private final Locale locale;
-    private final static String baseName = "i18n.adminTest";
+  private final static String baseName = "i18n.adminTest";
 
   /**
    * @see AdminTest
@@ -701,6 +606,7 @@ public static class AdminTest {
    * </ul>
    * @see AdminTest
    * @see #tryGetMyPropertyKey1(Locale locale)
+   * @see #getMyPropertyKey1()
    * @param locale 
    */ 
   public static String getMyPropertyKey1(Locale locale)
@@ -711,16 +617,10 @@ public static class AdminTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see AdminTest
    * @see #tryGetMyPropertyKey1()
+   * @see #getMyPropertyKey1(Locale)
    */ 
   public String getMyPropertyKey1()
   {
@@ -728,17 +628,10 @@ public static class AdminTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
    * @see AdminTest
    * @see #getMyPropertyKey1(Locale locale)
+   * @see #tryGetMyPropertyKey1()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey1(Locale locale)
@@ -754,17 +647,10 @@ public static class AdminTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
    * @see AdminTest
    * @see #getMyPropertyKey1()
+   * @see #tryGetMyPropertyKey1(Locale)
    */ 
   public String tryGetMyPropertyKey1()
   {
@@ -782,6 +668,7 @@ public static class AdminTest {
    * </ul>
    * @see AdminTest
    * @see #tryGetMyPropertyKey2(Locale locale)
+   * @see #getMyPropertyKey2()
    * @param locale 
    */ 
   public static String getMyPropertyKey2(Locale locale)
@@ -792,16 +679,10 @@ public static class AdminTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key2</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert2</li>
-   * <li>en_US=value2</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey2(Locale)} for the predefined {@link Locale}.
    * @see AdminTest
    * @see #tryGetMyPropertyKey2()
+   * @see #getMyPropertyKey2(Locale)
    */ 
   public String getMyPropertyKey2()
   {
@@ -809,17 +690,10 @@ public static class AdminTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key2</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert2</li>
-   * <li>en_US=value2</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey2(Locale)} but does not throw any {@link MissingResourceException}.
    * @see AdminTest
    * @see #getMyPropertyKey2(Locale locale)
+   * @see #tryGetMyPropertyKey2()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey2(Locale locale)
@@ -835,17 +709,10 @@ public static class AdminTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key2</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert2</li>
-   * <li>en_US=value2</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey2()} but does not throw any {@link MissingResourceException}.
    * @see AdminTest
    * @see #getMyPropertyKey2()
+   * @see #tryGetMyPropertyKey2(Locale)
    */ 
   public String tryGetMyPropertyKey2()
   {
@@ -853,161 +720,23 @@ public static class AdminTest {
   }
 
   /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see AdminTest
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String translate(Locale locale, String key)
+   * @see #translator()
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale)
   {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    return new Translator( baseName, locale );
   }
 
   /**
-   * Returns the translated property key for the predefined {@link Locale}
+   * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see AdminTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String)
-   * @see #translate(String[])
-   */ 
-  public String translate( String key )
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public Translator translator()
   {
-    return translate( this.locale, key );
-  }
-
-  /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
-   * @see AdminTest
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String tryTranslate(Locale locale, String key)
-  {
-    String retval = null;
-    try
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-      retval = resourceBundle.getString( key );
-    }
-    catch (MissingResourceException e) {}
-    return retval;
-  }
-
-  /**
-   * Returns the translated property key for the predefined {@link Locale}
-   * @see AdminTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String[])
-   */ 
-  public String tryTranslate( String key )
-  {
-    return tryTranslate( this.locale, key );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
-   * @param locale 
-   * @param keys 
-   * @see AdminTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public static Map<String, String> translate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      retmap.put( key, translate( locale, key ) );
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.
-   * @param keys 
-   * @see AdminTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #translate(Locale, String[])
-   * @see #tryTranslate(Locale, String[])
-   * @see #tryTranslate(String[])
-   */ 
-  public Map<String, String> translate( String... keys )
-  {
-    return translate( this.locale, keys );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param locale 
-   * @param keys 
-   * @see AdminTest
-   * @see #allPropertyKeys()
-   * @see #translate(Locale, String[])
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   */ 
-  public static Map<String, String> tryTranslate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      try
-      {
-        retmap.put( key, translate( locale, key ) );
-      }
-      catch (MissingResourceException e) {}
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param keys 
-   * @see AdminTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public Map<String, String> tryTranslate( String... keys )
-  {
-    return tryTranslate( this.locale, keys );
-  }
-
-  /**
-   * Returns all available property keys for the predefined {@link Locale}. 
-   * @see AdminTest
-   * @see #allPropertyKeys(Locale)
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public String[] allPropertyKeys()
-  {
-    return allPropertyKeys( this.locale );  }
-
-  /**
-   * Returns all available property keys for the given {@link Locale}. 
-   * @param locale 
-   * @see AdminTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public static String[] allPropertyKeys(Locale locale)
-  {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.keySet().toArray( new String[0] );
+    return translator( this.locale );
   }
 
 }
@@ -1017,20 +746,28 @@ public static class AdminTest {
  * To modify please adapt the underlying property files.<br><br>
  * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>
  * Resource base: <b>i18n.localelessTest</b>
- * @see #allPropertyKeys()
- * @see #allPropertyKeys(Locale)
- * @see #translate(String)
- * @see #translate(Locale, String)
- * @see #translate(String[])
- * @see #translate(Locale, String[])
- * @see #tryTranslate(String)
- * @see #tryTranslate(Locale, String)
- * @see #tryTranslate(String[])
- * @see #tryTranslate(Locale, String[])
+ * <br><br>
+ * <h1>Examples:</h1>
+ * <table border="1">
+ * <thead>
+ * <tr>
+ * <th>key</th>
+ * <th>examples</th>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td rowspan="1">my.property.key9</td>
+ * <td>=value9</td>
+ * </tr>
+ * </tbody>
+ * </table><br><br>
+ * @see #translator()
+ * @see #translator(Locale)
  */ 
 public static class LocalelessTest {
   private final Locale locale;
-    private final static String baseName = "i18n.localelessTest";
+  private final static String baseName = "i18n.localelessTest";
 
   /**
    * @see LocalelessTest
@@ -1052,6 +789,7 @@ public static class LocalelessTest {
    * </ul>
    * @see LocalelessTest
    * @see #tryGetMyPropertyKey9(Locale locale)
+   * @see #getMyPropertyKey9()
    * @param locale 
    */ 
   public static String getMyPropertyKey9(Locale locale)
@@ -1062,15 +800,10 @@ public static class LocalelessTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key9</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>=value9</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey9(Locale)} for the predefined {@link Locale}.
    * @see LocalelessTest
    * @see #tryGetMyPropertyKey9()
+   * @see #getMyPropertyKey9(Locale)
    */ 
   public String getMyPropertyKey9()
   {
@@ -1078,16 +811,10 @@ public static class LocalelessTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key9</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>=value9</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey9(Locale)} but does not throw any {@link MissingResourceException}.
    * @see LocalelessTest
    * @see #getMyPropertyKey9(Locale locale)
+   * @see #tryGetMyPropertyKey9()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey9(Locale locale)
@@ -1103,16 +830,10 @@ public static class LocalelessTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key9</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>=value9</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey9()} but does not throw any {@link MissingResourceException}.
    * @see LocalelessTest
    * @see #getMyPropertyKey9()
+   * @see #tryGetMyPropertyKey9(Locale)
    */ 
   public String tryGetMyPropertyKey9()
   {
@@ -1120,161 +841,23 @@ public static class LocalelessTest {
   }
 
   /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see LocalelessTest
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String translate(Locale locale, String key)
+   * @see #translator()
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale)
   {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    return new Translator( baseName, locale );
   }
 
   /**
-   * Returns the translated property key for the predefined {@link Locale}
+   * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see LocalelessTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String)
-   * @see #translate(String[])
-   */ 
-  public String translate( String key )
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public Translator translator()
   {
-    return translate( this.locale, key );
-  }
-
-  /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
-   * @see LocalelessTest
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String tryTranslate(Locale locale, String key)
-  {
-    String retval = null;
-    try
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-      retval = resourceBundle.getString( key );
-    }
-    catch (MissingResourceException e) {}
-    return retval;
-  }
-
-  /**
-   * Returns the translated property key for the predefined {@link Locale}
-   * @see LocalelessTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String[])
-   */ 
-  public String tryTranslate( String key )
-  {
-    return tryTranslate( this.locale, key );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
-   * @param locale 
-   * @param keys 
-   * @see LocalelessTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public static Map<String, String> translate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      retmap.put( key, translate( locale, key ) );
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.
-   * @param keys 
-   * @see LocalelessTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #translate(Locale, String[])
-   * @see #tryTranslate(Locale, String[])
-   * @see #tryTranslate(String[])
-   */ 
-  public Map<String, String> translate( String... keys )
-  {
-    return translate( this.locale, keys );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param locale 
-   * @param keys 
-   * @see LocalelessTest
-   * @see #allPropertyKeys()
-   * @see #translate(Locale, String[])
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   */ 
-  public static Map<String, String> tryTranslate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      try
-      {
-        retmap.put( key, translate( locale, key ) );
-      }
-      catch (MissingResourceException e) {}
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param keys 
-   * @see LocalelessTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public Map<String, String> tryTranslate( String... keys )
-  {
-    return tryTranslate( this.locale, keys );
-  }
-
-  /**
-   * Returns all available property keys for the predefined {@link Locale}. 
-   * @see LocalelessTest
-   * @see #allPropertyKeys(Locale)
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public String[] allPropertyKeys()
-  {
-    return allPropertyKeys( this.locale );  }
-
-  /**
-   * Returns all available property keys for the given {@link Locale}. 
-   * @param locale 
-   * @see LocalelessTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public static String[] allPropertyKeys(Locale locale)
-  {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.keySet().toArray( new String[0] );
+    return translator( this.locale );
   }
 
 }
@@ -1284,20 +867,39 @@ public static class LocalelessTest {
  * To modify please adapt the underlying property files.<br><br>
  * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>
  * Resource base: <b>i18n.viewTest</b>
- * @see #allPropertyKeys()
- * @see #allPropertyKeys(Locale)
- * @see #translate(String)
- * @see #translate(Locale, String)
- * @see #translate(String[])
- * @see #translate(Locale, String[])
- * @see #tryTranslate(String)
- * @see #tryTranslate(Locale, String)
- * @see #tryTranslate(String[])
- * @see #tryTranslate(Locale, String[])
+ * <br><br>
+ * <h1>Examples:</h1>
+ * <table border="1">
+ * <thead>
+ * <tr>
+ * <th>key</th>
+ * <th>examples</th>
+ * </tr>
+ * </thead>
+ * <tbody>
+ * <tr>
+ * <td rowspan="2">my.property.key1</td>
+ * <td>de_DE=wert1</td>
+ * </tr>
+ * <tr>
+ * <td><small>en_US=value1</small></td>
+ * </tr>
+ * <tr>
+ * <td rowspan="1">my.property.key3</td>
+ * <td>en_US=value3</td>
+ * </tr>
+ * <tr>
+ * <td rowspan="1">my.property.key4</td>
+ * <td>de_DE=wert4</td>
+ * </tr>
+ * </tbody>
+ * </table><br><br>
+ * @see #translator()
+ * @see #translator(Locale)
  */ 
 public static class ViewTest {
   private final Locale locale;
-    private final static String baseName = "i18n.viewTest";
+  private final static String baseName = "i18n.viewTest";
 
   /**
    * @see ViewTest
@@ -1320,6 +922,7 @@ public static class ViewTest {
    * </ul>
    * @see ViewTest
    * @see #tryGetMyPropertyKey1(Locale locale)
+   * @see #getMyPropertyKey1()
    * @param locale 
    */ 
   public static String getMyPropertyKey1(Locale locale)
@@ -1330,16 +933,10 @@ public static class ViewTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
    * @see #tryGetMyPropertyKey1()
+   * @see #getMyPropertyKey1(Locale)
    */ 
   public String getMyPropertyKey1()
   {
@@ -1347,17 +944,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey1(Locale locale)
+   * @see #tryGetMyPropertyKey1()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey1(Locale locale)
@@ -1373,17 +963,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key1</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert1</li>
-   * <li>en_US=value1</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey1()
+   * @see #tryGetMyPropertyKey1(Locale)
    */ 
   public String tryGetMyPropertyKey1()
   {
@@ -1400,6 +983,7 @@ public static class ViewTest {
    * </ul>
    * @see ViewTest
    * @see #tryGetMyPropertyKey3(Locale locale)
+   * @see #getMyPropertyKey3()
    * @param locale 
    */ 
   public static String getMyPropertyKey3(Locale locale)
@@ -1410,15 +994,10 @@ public static class ViewTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
    * @see #tryGetMyPropertyKey3()
+   * @see #getMyPropertyKey3(Locale)
    */ 
   public String getMyPropertyKey3()
   {
@@ -1426,16 +1005,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key3</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3(Locale)} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey3(Locale locale)
+   * @see #tryGetMyPropertyKey3()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey3(Locale locale)
@@ -1451,16 +1024,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key3</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>en_US=value3</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey3()} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey3()
+   * @see #tryGetMyPropertyKey3(Locale)
    */ 
   public String tryGetMyPropertyKey3()
   {
@@ -1477,6 +1044,7 @@ public static class ViewTest {
    * </ul>
    * @see ViewTest
    * @see #tryGetMyPropertyKey4(Locale locale)
+   * @see #getMyPropertyKey4()
    * @param locale 
    */ 
   public static String getMyPropertyKey4(Locale locale)
@@ -1487,15 +1055,10 @@ public static class ViewTest {
   }
 
   /**
-   * Returns the value of the property key <b>my.property.key4</b> for the predefined {@link Locale}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert4</li>
-   * </ul>
+   * Similar to {@link #getMyPropertyKey4(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
    * @see #tryGetMyPropertyKey4()
+   * @see #getMyPropertyKey4(Locale)
    */ 
   public String getMyPropertyKey4()
   {
@@ -1503,16 +1066,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key4</b> for the given {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}.
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert4</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey4(Locale)} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey4(Locale locale)
+   * @see #tryGetMyPropertyKey4()
    * @param locale 
    */ 
   public static String tryGetMyPropertyKey4(Locale locale)
@@ -1528,16 +1085,10 @@ public static class ViewTest {
   }
 
   /**
-   * Tries to return the value of the property key <b>my.property.key4</b> for the predefined {@link Locale}.<br><br>
-   * Does not throw any {@link Exception}
-   * <br><br>
-   * 
-   * Examples:
-   * <ul>
-   * <li>de_DE=wert4</li>
-   * </ul>
+   * Similar to  {@link #getMyPropertyKey4()} but does not throw any {@link MissingResourceException}.
    * @see ViewTest
    * @see #getMyPropertyKey4()
+   * @see #tryGetMyPropertyKey4(Locale)
    */ 
   public String tryGetMyPropertyKey4()
   {
@@ -1545,161 +1096,23 @@ public static class ViewTest {
   }
 
   /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see ViewTest
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String translate(Locale locale, String key)
+   * @see #translator()
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale)
   {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    return new Translator( baseName, locale );
   }
 
   /**
-   * Returns the translated property key for the predefined {@link Locale}
+   * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see ViewTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String)
-   * @see #translate(String[])
-   */ 
-  public String translate( String key )
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public Translator translator()
   {
-    return translate( this.locale, key );
-  }
-
-  /**
-   * Returns the translated property key for the given {@link Locale}.
-   * @param locale 
-   * @param key 
-   * @see ViewTest
-   * @see #tryTranslate(String)
-   * @see #translate(Locale, String[])
-   */ 
-  public static String tryTranslate(Locale locale, String key)
-  {
-    String retval = null;
-    try
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-      retval = resourceBundle.getString( key );
-    }
-    catch (MissingResourceException e) {}
-    return retval;
-  }
-
-  /**
-   * Returns the translated property key for the predefined {@link Locale}
-   * @see ViewTest
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(String[])
-   */ 
-  public String tryTranslate( String key )
-  {
-    return tryTranslate( this.locale, key );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
-   * @param locale 
-   * @param keys 
-   * @see ViewTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public static Map<String, String> translate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      retmap.put( key, translate( locale, key ) );
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.
-   * @param keys 
-   * @see ViewTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #translate(Locale, String[])
-   * @see #tryTranslate(Locale, String[])
-   * @see #tryTranslate(String[])
-   */ 
-  public Map<String, String> translate( String... keys )
-  {
-    return translate( this.locale, keys );
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param locale 
-   * @param keys 
-   * @see ViewTest
-   * @see #allPropertyKeys()
-   * @see #translate(Locale, String[])
-   * @see #translate(String[])
-   * @see #translate(Locale, String)
-   */ 
-  public static Map<String, String> tryTranslate( Locale locale, String... keys )
-  {
-    Map<String, String> retmap = new LinkedHashMap<String, String>();
-    for ( String key : keys )
-    {
-      try
-      {
-        retmap.put( key, translate( locale, key ) );
-      }
-      catch (MissingResourceException e) {}
-    }
-    return retmap;
-  }
-
-  /**
-   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
-   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-   * @param keys 
-   * @see ViewTest
-   * @see #allPropertyKeys()
-   * @see #translate(String)
-   * @see #tryTranslate(Locale, String[])
-   */ 
-  public Map<String, String> tryTranslate( String... keys )
-  {
-    return tryTranslate( this.locale, keys );
-  }
-
-  /**
-   * Returns all available property keys for the predefined {@link Locale}. 
-   * @see ViewTest
-   * @see #allPropertyKeys(Locale)
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public String[] allPropertyKeys()
-  {
-    return allPropertyKeys( this.locale );  }
-
-  /**
-   * Returns all available property keys for the given {@link Locale}. 
-   * @param locale 
-   * @see ViewTest
-   * @see #allPropertyKeys()
-   * @see #translate(String[])
-   * @see #translate(Locale, String[])
-   */ 
-  public static String[] allPropertyKeys(Locale locale)
-  {
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.keySet().toArray( new String[0] );
+    return translator( this.locale );
   }
 
 }

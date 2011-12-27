@@ -53,14 +53,14 @@ public class I18nFacadeTest
                   i18nFacade.I18n._673numericalTest.tryGetMyPropertyKey3( placeholderToReplacementMap ) );
     
     //
-    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translate( "my.property.key1" ) );
-    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.tryTranslate( "my.property.key1" ) );
+    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translator().translate( "my.property.key1" ) );
+    assertEquals( "value {0} and {1}", i18nFacade.I18n._673numericalTest.translator().tryTranslate( "my.property.key1" ) );
     
     //
     {
       //
-      String[] keys = i18nFacade.I18n._673numericalTest.allPropertyKeys();
-      Map<String, String> map = i18nFacade.I18n._673numericalTest.translate( keys );
+      String[] keys = i18nFacade.I18n._673numericalTest.translator().allPropertyKeys();
+      Map<String, String> map = i18nFacade.I18n._673numericalTest.translator().translate( keys );
       assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
       assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
                     new ArrayList<String>( map.values() ) );
@@ -74,7 +74,7 @@ public class I18nFacadeTest
     //
     Locale locale = Locale.US;
     I18nFacade i18nFacade = new I18nFacade( locale );
-    assertEquals( null, i18nFacade.I18n._673numericalTest.translate( "non.existing.key" ) );
+    assertEquals( null, i18nFacade.I18n._673numericalTest.translator().translate( "non.existing.key" ) );
   }
   
   @Test
@@ -83,7 +83,7 @@ public class I18nFacadeTest
     //
     Locale locale = Locale.US;
     I18nFacade i18nFacade = new I18nFacade( locale );
-    assertEquals( null, i18nFacade.I18n._673numericalTest.tryTranslate( "non.existing.key" ) );
+    assertEquals( null, i18nFacade.I18n._673numericalTest.translator().tryTranslate( "non.existing.key" ) );
   }
   
   @Test(expected = MissingResourceException.class)
@@ -94,8 +94,8 @@ public class I18nFacadeTest
     I18nFacade i18nFacade = new I18nFacade( locale );
     
     //
-    String[] keys = ArrayUtils.add( i18nFacade.I18n._673numericalTest.allPropertyKeys(), 0, "missingKey" );
-    Map<String, String> map = i18nFacade.I18n._673numericalTest.translate( keys );
+    String[] keys = ArrayUtils.add( i18nFacade.I18n._673numericalTest.translator().allPropertyKeys(), 0, "missingKey" );
+    Map<String, String> map = i18nFacade.I18n._673numericalTest.translator().translate( keys );
     assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
     assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
                   new ArrayList<String>( map.values() ) );
@@ -110,8 +110,8 @@ public class I18nFacadeTest
     I18nFacade i18nFacade = new I18nFacade( locale );
     
     //
-    String[] keys = ArrayUtils.add( new _673numericalTest( locale ).allPropertyKeys(), 0, "missingKey" );
-    Map<String, String> map = i18nFacade.I18n._673numericalTest.tryTranslate( keys );
+    String[] keys = ArrayUtils.add( new _673numericalTest( locale ).translator().allPropertyKeys(), 0, "missingKey" );
+    Map<String, String> map = i18nFacade.I18n._673numericalTest.translator().tryTranslate( keys );
     assertEquals( Arrays.asList( "my.property.key1", "my.property.key3" ), new ArrayList<String>( map.keySet() ) );
     assertEquals( Arrays.asList( "value {0} and {1}", "value3 with {arbitrary} replacement" ),
                   new ArrayList<String>( map.values() ) );

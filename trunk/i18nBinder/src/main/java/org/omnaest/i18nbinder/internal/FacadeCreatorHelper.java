@@ -22,9 +22,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -35,8 +37,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.omnaest.i18nbinder.grouping.FileGroup;
 import org.omnaest.i18nbinder.grouping.FileGroupToPropertiesAdapter;
 import org.omnaest.i18nbinder.grouping.FileGrouper;
-import org.omnaest.utils.structure.collection.ListUtils;
-import org.omnaest.utils.structure.collection.ListUtils.ElementFilter;
+import org.omnaest.utils.structure.collection.list.ListUtils;
+import org.omnaest.utils.structure.collection.list.ListUtils.ElementFilter;
 import org.omnaest.utils.structure.element.converter.ElementConverterElementToMapEntry;
 import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy;
 import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy.TokenElementPath;
@@ -308,7 +310,7 @@ public class FacadeCreatorHelper
       //
       List<String> tokenElementOfChildrenList = navigator.getTokenElementOfChildrenList();
       
-      subClassNameToTokenElementMap.putAll( ListUtils.asMap( tokenElementOfChildrenList,
+      subClassNameToTokenElementMap.putAll( ListUtils.toMap( tokenElementOfChildrenList,
                                                              new CamelCaseTokenElementToMapEntryConverter( className ) ) );
       
     }
@@ -340,9 +342,58 @@ public class FacadeCreatorHelper
           //
           {
             //
-            String key = propertyName;
-            List<String> value = propertyKeyAndValues.valueList;
-            propertyNameToExampleValueListMap.put( key, value );
+            final String key = propertyName;
+            final List<String> valueList = new ArrayList<String>( propertyKeyAndValues.valueList );
+            {
+              //
+              final String defaultLocaleString = String.valueOf( Locale.getDefault() );
+              final String defaultLocaleLanguageString = String.valueOf( Locale.getDefault().getLanguage() );
+              Collections.sort( valueList, new Comparator<String>()
+              {
+                @Override
+                public int compare( String o1, String o2 )
+                {
+                  //
+                  int retval = 0;
+                  
+                  //
+                  final String firstElement1 = org.omnaest.utils.structure.collection.list.ListUtils.firstElement( org.omnaest.utils.structure.collection.list.ListUtils.valueOf( StringUtils.split( o1,
+                                                                                                                                                                                                     "=" ) ) );
+                  final String firstElement2 = org.omnaest.utils.structure.collection.list.ListUtils.firstElement( org.omnaest.utils.structure.collection.list.ListUtils.valueOf( StringUtils.split( o2,
+                                                                                                                                                                                                     "=" ) ) );
+                  
+                  //
+                  if ( StringUtils.startsWith( firstElement1, defaultLocaleString ) )
+                  {
+                    retval--;
+                  }
+                  if ( StringUtils.startsWith( firstElement2, defaultLocaleString ) )
+                  {
+                    retval++;
+                  }
+                  if ( StringUtils.contains( firstElement1, defaultLocaleString ) )
+                  {
+                    retval--;
+                  }
+                  if ( StringUtils.contains( firstElement2, defaultLocaleString ) )
+                  {
+                    retval++;
+                  }
+                  if ( StringUtils.contains( firstElement1, defaultLocaleLanguageString ) )
+                  {
+                    retval--;
+                  }
+                  if ( StringUtils.contains( firstElement2, defaultLocaleLanguageString ) )
+                  {
+                    retval++;
+                  }
+                  
+                  //
+                  return retval;
+                }
+              } );
+            }
+            propertyNameToExampleValueListMap.put( key, valueList );
           }
           
           //
@@ -366,6 +417,60 @@ public class FacadeCreatorHelper
     stringBuilder.append( " * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>\n" );
     stringBuilder.append( hasBaseName ? " * Resource base: <b>" + baseName + "</b>\n" : "" );
     
+    //
+    if ( hasProperties )
+    {
+      //
+      stringBuilder.append( " * <br><br>\n" );
+      stringBuilder.append( " * <h1>Examples:</h1>\n" );
+      stringBuilder.append( " * <table border=\"1\">\n" );
+      
+      stringBuilder.append( " * <thead>\n" );
+      stringBuilder.append( " * <tr>\n" );
+      stringBuilder.append( " * <th>key</th>\n" );
+      stringBuilder.append( " * <th>examples</th>\n" );
+      stringBuilder.append( " * </tr>\n" );
+      stringBuilder.append( " * </thead>\n" );
+      
+      stringBuilder.append( " * <tbody>\n" );
+      for ( String propertyName : propertyNameToExampleValueListMap.keySet() )
+      {
+        //
+        final int exampleSizeMax = 3;
+        
+        //
+        final String propertyKey = propertyNameToPropertyKeyMap.get( propertyName );
+        final List<String> exampleValueList = new ArrayList<String>( propertyNameToExampleValueListMap.get( propertyName ) );
+        {
+          while ( exampleValueList.size() > exampleSizeMax )
+          {
+            exampleValueList.remove( exampleValueList.size() - 1 );
+          }
+        }
+        final Iterator<String> iteratorExampleValueList = exampleValueList.iterator();
+        
+        //
+        final int exampleSize = exampleValueList.size();
+        if ( exampleSize > 0 )
+        {
+          //
+          stringBuilder.append( " * <tr>\n" );
+          stringBuilder.append( " * <td rowspan=\"" + exampleSize + "\">" + propertyKey + "</td>\n" );
+          stringBuilder.append( " * <td>" + iteratorExampleValueList.next() + "</td>\n" );
+          stringBuilder.append( " * </tr>\n" );
+          while ( iteratorExampleValueList.hasNext() )
+          {
+            //
+            stringBuilder.append( " * <tr>\n" );
+            stringBuilder.append( " * <td><small>" + iteratorExampleValueList.next() + "</small></td>\n" );
+            stringBuilder.append( " * </tr>\n" );
+          }
+        }
+      }
+      stringBuilder.append( " * </tbody>\n" );
+      stringBuilder.append( " * </table><br><br>\n" );
+    }
+    
     for ( String subClassName : subClassNameToTokenElementMap.keySet() )
     {
       stringBuilder.append( " * @see " + subClassName + "\n" );
@@ -373,16 +478,8 @@ public class FacadeCreatorHelper
     
     if ( hasProperties )
     {
-      stringBuilder.append( " * @see #allPropertyKeys()\n" );
-      stringBuilder.append( " * @see #allPropertyKeys(Locale)\n" );
-      stringBuilder.append( " * @see #translate(String)\n" );
-      stringBuilder.append( " * @see #translate(Locale, String)\n" );
-      stringBuilder.append( " * @see #translate(String[])\n" );
-      stringBuilder.append( " * @see #translate(Locale, String[])\n" );
-      stringBuilder.append( " * @see #tryTranslate(String)\n" );
-      stringBuilder.append( " * @see #tryTranslate(Locale, String)\n" );
-      stringBuilder.append( " * @see #tryTranslate(String[])\n" );
-      stringBuilder.append( " * @see #tryTranslate(Locale, String[])\n" );
+      stringBuilder.append( " * @see #translator()\n" );
+      stringBuilder.append( " * @see #translator(Locale)\n" );
     }
     stringBuilder.append( " */ \n" );
     
@@ -398,14 +495,173 @@ public class FacadeCreatorHelper
           stringBuilder.append( "  private final Locale locale;\n" );
           
           //
-          stringBuilder.append( "    private final static String baseName = \"" + baseName + "\";\n" );
+          stringBuilder.append( "  private final static String baseName = \"" + baseName + "\";\n" );
         }
         
         //
         for ( String subClassName : subClassNameToTokenElementMap.keySet() )
         {
           stringBuilder.append( "  /** @see " + subClassName + " */\n" );
-          stringBuilder.append( "  public " + subClassName + " " + subClassName + " = null;\n" );
+          stringBuilder.append( "  public final " + subClassName + " " + subClassName + ";\n" );
+        }
+      }
+      
+      //helper classes
+      {
+        if ( !staticModifier )
+        {
+          stringBuilder.append( "\n" );
+          stringBuilder.append( "  /**\n" );
+          stringBuilder.append( "   * A {@link Translator} offers several methods to translate arbitrary keys into their i18n counterpart based on the initially\n" );
+          stringBuilder.append( "   * given {@link Locale}.\n" );
+          stringBuilder.append( "   * \n" );
+          stringBuilder.append( "   * @see #translate(String)\n" );
+          stringBuilder.append( "   * @see #translate(String[]) \n" );
+          stringBuilder.append( "   * @see #tryTranslate(String) \n" );
+          stringBuilder.append( "   * @see #tryTranslate(String[]) \n" );
+          stringBuilder.append( "   * @see #allPropertyKeys() \n" );
+          stringBuilder.append( "   */ \n" );
+          stringBuilder.append( "  public static class Translator {\n" );
+          
+          //translator vars and constructor
+          {
+            stringBuilder.append( "\n" );
+            stringBuilder.append( "    private final String baseName;\n" );
+            stringBuilder.append( "    private final Locale locale;\n" );
+            stringBuilder.append( "\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @param baseName\n" );
+            stringBuilder.append( "     * @param locale\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public Translator( String baseName, Locale locale )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      super();\n" );
+            stringBuilder.append( "      this.baseName = baseName;\n" );
+            stringBuilder.append( "      this.locale = locale;\n" );
+            stringBuilder.append( "    }\n\n" );
+          }
+          
+          //translation map methods
+          {
+            //
+            stringBuilder.append( "    private String translate(Locale locale, String key)\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );\n" );
+            stringBuilder.append( "      return resourceBundle.getString( key );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * Returns the translated property key for the predefined {@link Locale}\n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @see #translate(Locale, String)\n" );
+            stringBuilder.append( "     * @see #tryTranslate(String)\n" );
+            stringBuilder.append( "     * @see #translate(String[])\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public String translate( String key )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return translate( this.locale, key );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            //
+            stringBuilder.append( "    private String tryTranslate(Locale locale, String key)\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      String retval = null;\n" );
+            stringBuilder.append( "      try\n" );
+            stringBuilder.append( "      {\n" );
+            stringBuilder.append( "        ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );\n" );
+            stringBuilder.append( "        retval = resourceBundle.getString( key );\n" );
+            stringBuilder.append( "      }\n" );
+            stringBuilder.append( "      catch (MissingResourceException e) {}\n" );
+            stringBuilder.append( "      return retval;\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * Returns the translated property key for the predefined {@link Locale}\n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @see #translate(String)\n" );
+            stringBuilder.append( "     * @see #tryTranslate(String[])\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public String tryTranslate( String key )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return tryTranslate( this.locale, key );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            //
+            stringBuilder.append( "    private  Map<String, String> translate( Locale locale, String... keys )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      Map<String, String> retmap = new LinkedHashMap<String, String>();\n" );
+            stringBuilder.append( "      for ( String key : keys )\n" );
+            stringBuilder.append( "      {\n" );
+            stringBuilder.append( "        retmap.put( key, translate( locale, key ) );\n" );
+            stringBuilder.append( "      }\n" );
+            stringBuilder.append( "      return retmap;\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.\n" );
+            stringBuilder.append( "     * @param keys \n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @see #allPropertyKeys()\n" );
+            stringBuilder.append( "     * @see #translate(String)\n" );
+            stringBuilder.append( "     * @see #tryTranslate(String[])\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public Map<String, String> translate( String... keys )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return translate( this.locale, keys );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            //
+            stringBuilder.append( "    private Map<String, String> tryTranslate( Locale locale, String... keys )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      Map<String, String> retmap = new LinkedHashMap<String, String>();\n" );
+            stringBuilder.append( "      for ( String key : keys )\n" );
+            stringBuilder.append( "      {\n" );
+            stringBuilder.append( "        try\n" );
+            stringBuilder.append( "        {\n" );
+            stringBuilder.append( "          retmap.put( key, translate( locale, key ) );\n" );
+            stringBuilder.append( "        }\n" );
+            stringBuilder.append( "        catch (MissingResourceException e) {}\n" );
+            stringBuilder.append( "      }\n" );
+            stringBuilder.append( "      return retmap;\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>\n" );
+            stringBuilder.append( "     * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.\n" );
+            stringBuilder.append( "     * @param keys \n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @see #allPropertyKeys()\n" );
+            stringBuilder.append( "     * @see #translate(String)\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public Map<String, String> tryTranslate( String... keys )\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return tryTranslate( this.locale, keys );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            //          
+            stringBuilder.append( "    private String[] allPropertyKeys(Locale locale)\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );\n" );
+            stringBuilder.append( "      return resourceBundle.keySet().toArray( new String[0] );\n" );
+            stringBuilder.append( "    }\n\n" );
+            
+            stringBuilder.append( "    /**\n" );
+            stringBuilder.append( "     * Returns all available property keys for the predefined {@link Locale}. \n" );
+            stringBuilder.append( "     * @see Translator\n" );
+            stringBuilder.append( "     * @see #translate(String[])\n" );
+            stringBuilder.append( "     * @see #tryTranslate(String[])\n" );
+            stringBuilder.append( "     */ \n" );
+            stringBuilder.append( "    public String[] allPropertyKeys()\n" );
+            stringBuilder.append( "    {\n" );
+            stringBuilder.append( "      return allPropertyKeys( this.locale );" );
+            stringBuilder.append( "    }\n\n" );
+          }
+          
+          //
+          stringBuilder.append( "  }\n" );
+          stringBuilder.append( "\n" );
         }
       }
       
@@ -477,6 +733,7 @@ public class FacadeCreatorHelper
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale locale)\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "()\n" );
             stringBuilder.append( "   * @param locale \n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public static String get" + propertyName + "(Locale locale)\n" );
@@ -488,12 +745,10 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Returns the value of the property key <b>" + propertyKey
-                                  + "</b> for the predefined {@link Locale}.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to {@link #get" + propertyName + "(Locale)} for the predefined {@link Locale}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "()\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale)\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String get" + propertyName + "()\n" );
             stringBuilder.append( "  {\n" );
@@ -504,13 +759,11 @@ public class FacadeCreatorHelper
           {
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Tries to return the value of the property key <b>" + propertyKey
-                                  + "</b> for the given {@link Locale}.<br><br>\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Locale)} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "(Locale locale)\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "()\n" );
             stringBuilder.append( "   * @param locale \n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public static String tryGet" + propertyName + "(Locale locale)\n" );
@@ -527,13 +780,11 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Tries to return the value of the property key <b>" + propertyKey
-                                  + "</b> for the predefined {@link Locale}.<br><br>\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "()} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "()\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale)\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String tryGet" + propertyName + "()\n" );
             stringBuilder.append( "  {\n" );
@@ -554,6 +805,7 @@ public class FacadeCreatorHelper
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale,String[])\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(String[])\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
@@ -573,13 +825,10 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Returns the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the predefined {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.\n" );
-            stringBuilder.append( "   * If there are not enough parameters existing placeholders will remain unreplaced.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Locale,String[])} using the predefined {@link Locale}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale,String[])\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "(String[])\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
@@ -590,15 +839,11 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Tries to return the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the given {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.<br><br>\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
-            stringBuilder.append( "   * If there are not enough parameters existing placeholders will remain unreplaced.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Locale,String[])} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "(Locale,String[])\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(String[])\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
@@ -616,15 +861,11 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Tries to return the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the predefined {@link Locale} with all {0},{1},... placeholders replaced by the given tokens in their order.\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
-            stringBuilder.append( "   * If there are not enough parameters existing placeholders will remain unreplaced.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesNumericPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(String[])} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "(String[])\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale,String[])\n" );
             stringBuilder.append( "   * @param tokens\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String tryGet" + propertyName + "( String... tokens )\n" );
@@ -646,6 +887,7 @@ public class FacadeCreatorHelper
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale,Map)\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Map)\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
@@ -669,13 +911,10 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Returns the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.\n" );
-            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Locale,Map)} using the predefined {@link Locale}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
+            stringBuilder.append( "   * @see #get" + propertyName + "(Locale,Map)\n" );
             stringBuilder.append( "   * @see #tryGet" + propertyName + "(Map)\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
@@ -686,15 +925,11 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Tries to return the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the given {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.<br>\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
-            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Locale,Map)} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "(Locale,Map)\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Map)\n" );
             stringBuilder.append( "   * @param locale\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
@@ -713,15 +948,11 @@ public class FacadeCreatorHelper
             
             //
             stringBuilder.append( "  /**\n" );
-            stringBuilder.append( "   * Returns the value of the property key <b>"
-                                  + propertyKey
-                                  + "</b> for the predefined {@link Locale} with arbitrary placeholder tag like {example} replaced by the given values.\n" );
-            stringBuilder.append( "   * Does not throw any {@link Exception}.<br><br>\n" );
-            stringBuilder.append( "   * The given placeholderToReplacementMap needs the placeholder tag name and a value. E.g. for {example} the key \"example\" has to be set.\n" );
-            printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
-            printJavaDocValueExamples( stringBuilder, exampleValueList );
+            stringBuilder.append( "   * Similar to  {@link #get" + propertyName
+                                  + "(Map)} but does not throw any {@link MissingResourceException}.\n" );
             stringBuilder.append( "   * @see " + className + "\n" );
             stringBuilder.append( "   * @see #get" + propertyName + "(Locale, Map)\n" );
+            stringBuilder.append( "   * @see #tryGet" + propertyName + "(Locale, Map)\n" );
             stringBuilder.append( "   * @param placeholderToReplacementMap\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String tryGet" + propertyName
@@ -732,173 +963,30 @@ public class FacadeCreatorHelper
           }
         }
         
-        //translation map methods
+        //translator methods
         {
           //
           stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns the translated property key for the given {@link Locale}.\n" );
-          stringBuilder.append( "   * @param locale \n" );
-          stringBuilder.append( "   * @param key \n" );
+          stringBuilder.append( "   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base\n" );
           stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #translate(String)\n" );
-          stringBuilder.append( "   * @see #tryTranslate(Locale, String)\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
+          stringBuilder.append( "   * @see #translator()\n" );
+          stringBuilder.append( "   * @return {@link Translator}" );
           stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public static String translate(Locale locale, String key)\n" );
+          stringBuilder.append( "  public static Translator translator(Locale locale)\n" );
           stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
-          stringBuilder.append( "    return resourceBundle.getString( key );\n" );
+          stringBuilder.append( "    return new Translator( baseName, locale );\n" );
           stringBuilder.append( "  }\n\n" );
           
           stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns the translated property key for the predefined {@link Locale}\n" );
+          stringBuilder.append( "   * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base\n" );
           stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
-          stringBuilder.append( "   * @see #tryTranslate(String)\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
-          stringBuilder.append( "   * @see #translate(String[])\n" );
+          stringBuilder.append( "   * @see #translator(Locale)\n" );
+          stringBuilder.append( "   * @return {@link Translator}" );
           stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public String translate( String key )\n" );
+          stringBuilder.append( "  public Translator translator()\n" );
           stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    return translate( this.locale, key );\n" );
+          stringBuilder.append( "    return translator( this.locale );\n" );
           stringBuilder.append( "  }\n\n" );
-          
-          //
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns the translated property key for the given {@link Locale}.\n" );
-          stringBuilder.append( "   * @param locale \n" );
-          stringBuilder.append( "   * @param key \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #tryTranslate(String)\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public static String tryTranslate(Locale locale, String key)\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    String retval = null;\n" );
-          stringBuilder.append( "    try\n" );
-          stringBuilder.append( "    {\n" );
-          stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
-          stringBuilder.append( "      retval = resourceBundle.getString( key );\n" );
-          stringBuilder.append( "    }\n" );
-          stringBuilder.append( "    catch (MissingResourceException e) {}\n" );
-          stringBuilder.append( "    return retval;\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns the translated property key for the predefined {@link Locale}\n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
-          stringBuilder.append( "   * @see #tryTranslate(String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public String tryTranslate( String key )\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    return tryTranslate( this.locale, key );\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          //
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.\n" );
-          stringBuilder.append( "   * @param locale \n" );
-          stringBuilder.append( "   * @param keys \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
-          stringBuilder.append( "   * @see #translate(String[])\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
-          stringBuilder.append( "   * @see #tryTranslate(Locale, String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public static Map<String, String> translate( Locale locale, String... keys )\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    Map<String, String> retmap = new LinkedHashMap<String, String>();\n" );
-          stringBuilder.append( "    for ( String key : keys )\n" );
-          stringBuilder.append( "    {\n" );
-          stringBuilder.append( "      retmap.put( key, translate( locale, key ) );\n" );
-          stringBuilder.append( "    }\n" );
-          stringBuilder.append( "    return retmap;\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.\n" );
-          stringBuilder.append( "   * @param keys \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
-          stringBuilder.append( "   * @see #translate(String)\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
-          stringBuilder.append( "   * @see #tryTranslate(Locale, String[])\n" );
-          stringBuilder.append( "   * @see #tryTranslate(String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public Map<String, String> translate( String... keys )\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    return translate( this.locale, keys );\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          //
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.<br>\n" );
-          stringBuilder.append( "   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.\n" );
-          stringBuilder.append( "   * @param locale \n" );
-          stringBuilder.append( "   * @param keys \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
-          stringBuilder.append( "   * @see #translate(String[])\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String)\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public static Map<String, String> tryTranslate( Locale locale, String... keys )\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    Map<String, String> retmap = new LinkedHashMap<String, String>();\n" );
-          stringBuilder.append( "    for ( String key : keys )\n" );
-          stringBuilder.append( "    {\n" );
-          stringBuilder.append( "      try\n" );
-          stringBuilder.append( "      {\n" );
-          stringBuilder.append( "        retmap.put( key, translate( locale, key ) );\n" );
-          stringBuilder.append( "      }\n" );
-          stringBuilder.append( "      catch (MissingResourceException e) {}\n" );
-          stringBuilder.append( "    }\n" );
-          stringBuilder.append( "    return retmap;\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>\n" );
-          stringBuilder.append( "   * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.\n" );
-          stringBuilder.append( "   * @param keys \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
-          stringBuilder.append( "   * @see #translate(String)\n" );
-          stringBuilder.append( "   * @see #tryTranslate(Locale, String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public Map<String, String> tryTranslate( String... keys )\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    return tryTranslate( this.locale, keys );\n" );
-          stringBuilder.append( "  }\n\n" );
-          
-          //          
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns all available property keys for the predefined {@link Locale}. \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys(Locale)\n" );
-          stringBuilder.append( "   * @see #translate(String[])\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public String[] allPropertyKeys()\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    return allPropertyKeys( this.locale );" );
-          stringBuilder.append( "  }\n\n" );
-          
-          //          
-          stringBuilder.append( "  /**\n" );
-          stringBuilder.append( "   * Returns all available property keys for the given {@link Locale}. \n" );
-          stringBuilder.append( "   * @param locale \n" );
-          stringBuilder.append( "   * @see " + className + "\n" );
-          stringBuilder.append( "   * @see #allPropertyKeys()\n" );
-          stringBuilder.append( "   * @see #translate(String[])\n" );
-          stringBuilder.append( "   * @see #translate(Locale, String[])\n" );
-          stringBuilder.append( "   */ \n" );
-          stringBuilder.append( "  public static String[] allPropertyKeys(Locale locale)\n" );
-          stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );\n" );
-          stringBuilder.append( "    return resourceBundle.keySet().toArray( new String[0] );\n" );
-          stringBuilder.append( "  }\n\n" );
-          
         }
       }
     }
