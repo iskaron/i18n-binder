@@ -15,6 +15,53 @@ import java.util.ResourceBundle;
 public class I18nFacade {
   /** @see I18n */
   public final I18n I18n;
+  /** Internally used {@link ResourceBasedTranslator}. Changing this implementation affects the behavior of the whole facade */
+  protected static ResourceBasedTranslator resourceBasedTranslator = new ResourceBasedTranslator()
+  {
+    @Override
+    public String translate( String baseName, String key, Locale locale )
+    {
+      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
+      return resourceBundle.getString( key );
+    }
+
+    @Override
+    public String[] resolveAllKeys( String baseName, Locale locale )
+    {
+      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
+      return resourceBundle.keySet().toArray( new String[0] );
+    }
+  };
+
+  /** Defines which {@link ResourceBasedTranslator} the facade should use. This affects all available instances. */
+  public static void use( ResourceBasedTranslator resourceBasedTranslator )
+  {
+    I18nFacade.resourceBasedTranslator = resourceBasedTranslator;
+  };
+
+
+  /**
+   * Basic interface which is used by the facade to resolve translated values for given keys<br>
+   * <br>
+   * Any implementation should be thread safe   */ 
+  public static interface ResourceBasedTranslator {
+    /**
+     * Returns the translated value for the given key respecting the base name and the given {@link Locale}
+     * @param baseName
+     * @param key
+     * @param locale
+     * @return
+     */ 
+    public String translate( String baseName, String key, Locale locale );
+    /**
+     * Returns all available keys for the given {@link Locale}
+     * @param baseName
+     * @param locale
+     * @return
+     */ 
+    public String[] resolveAllKeys( String baseName, Locale locale );
+  }
+
 
   /**
    * A {@link Translator} offers several methods to translate arbitrary keys into their i18n counterpart based on the initially
@@ -22,14 +69,13 @@ public class I18nFacade {
    * 
    * @see #translate(String)
    * @see #translate(String[]) 
-   * @see #tryTranslate(String) 
-   * @see #tryTranslate(String[]) 
    * @see #allPropertyKeys() 
    */ 
   public static class Translator {
 
     private final String baseName;
     private final Locale locale;
+    private final boolean silentlyIgnoreMissingResourceException;
 
     /**
      * @see Translator
@@ -38,22 +84,48 @@ public class I18nFacade {
      */ 
     public Translator( String baseName, Locale locale )
     {
+      this(baseName,locale,true);
+    }
+
+    /**
+     * @see Translator
+     * @param baseName
+     * @param locale
+     */ 
+    public Translator( String baseName, Locale locale, boolean silentlyIgnoreMissingResourceException )
+    {
       super();
       this.baseName = baseName;
       this.locale = locale;
+      this.silentlyIgnoreMissingResourceException = silentlyIgnoreMissingResourceException;
     }
 
-    private String translate(Locale locale, String key)
+    /**
+     * Returns the translated property key for the given {@link Locale}
+     * @see Translator
+     * @see #translate(String)
+     * @see #translate(String[])
+     */ 
+    public String translate(Locale locale, String key)
     {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
-      return resourceBundle.getString( key );
+      try
+      {
+        return resourceBasedTranslator.translate( this.baseName, key, locale );
+      }
+      catch ( MissingResourceException e )
+      {
+        if (!this.silentlyIgnoreMissingResourceException)
+        {
+          throw e;
+        }
+        return null;
+      }
     }
 
     /**
      * Returns the translated property key for the predefined {@link Locale}
      * @see Translator
      * @see #translate(Locale, String)
-     * @see #tryTranslate(String)
      * @see #translate(String[])
      */ 
     public String translate( String key )
@@ -61,30 +133,14 @@ public class I18nFacade {
       return translate( this.locale, key );
     }
 
-    private String tryTranslate(Locale locale, String key)
-    {
-      String retval = null;
-      try
-      {
-        ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
-        retval = resourceBundle.getString( key );
-      }
-      catch (MissingResourceException e) {}
-      return retval;
-    }
-
     /**
-     * Returns the translated property key for the predefined {@link Locale}
+     * Returns a translation {@link Map} with the given property keys and their respective values for the given {@link Locale}.
+     * @param keys 
      * @see Translator
+     * @see #allPropertyKeys()
      * @see #translate(String)
-     * @see #tryTranslate(String[])
      */ 
-    public String tryTranslate( String key )
-    {
-      return tryTranslate( this.locale, key );
-    }
-
-    private  Map<String, String> translate( Locale locale, String... keys )
+    public Map<String, String> translate( Locale locale, String... keys )
     {
       Map<String, String> retmap = new LinkedHashMap<String, String>();
       for ( String key : keys )
@@ -100,66 +156,83 @@ public class I18nFacade {
      * @see Translator
      * @see #allPropertyKeys()
      * @see #translate(String)
-     * @see #tryTranslate(String[])
      */ 
     public Map<String, String> translate( String... keys )
     {
       return translate( this.locale, keys );
     }
 
-    private Map<String, String> tryTranslate( Locale locale, String... keys )
-    {
-      Map<String, String> retmap = new LinkedHashMap<String, String>();
-      for ( String key : keys )
-      {
-        try
-        {
-          retmap.put( key, translate( locale, key ) );
-        }
-        catch (MissingResourceException e) {}
-      }
-      return retmap;
-    }
-
     /**
-     * Returns a translation {@link Map} with the given property keys and their respective values for the predefined {@link Locale}.<br>
-     * If a single property key cannot be resolved from the resources, it will be excluded from the translation {@link Map} but no {@link Exception} will be thrown.
-     * @param keys 
+     * Returns all available property keys for the given {@link Locale}. 
      * @see Translator
      * @see #allPropertyKeys()
-     * @see #translate(String)
+     * @see #translate(String[])
      */ 
-    public Map<String, String> tryTranslate( String... keys )
+    public String[] allPropertyKeys(Locale locale)
     {
-      return tryTranslate( this.locale, keys );
-    }
-
-    private String[] allPropertyKeys(Locale locale)
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( this.baseName, locale );
-      return resourceBundle.keySet().toArray( new String[0] );
+      return resourceBasedTranslator.resolveAllKeys( this.baseName, locale );
     }
 
     /**
      * Returns all available property keys for the predefined {@link Locale}. 
      * @see Translator
+     * @see #allPropertyKeys(Locale)
      * @see #translate(String[])
-     * @see #tryTranslate(String[])
      */ 
     public String[] allPropertyKeys()
     {
-      return allPropertyKeys( this.locale );    }
+      return allPropertyKeys( this.locale );
+    }
+
+    /**
+     * Returns a translation {@link Map} for the predefined {@link Locale} including all available i18n keys resolved using 
+     * {@link #allPropertyKeys()} and their respective translation values resolved using {@link #translate(String...)} 
+     * @see Translator
+     * @see #allPropertyKeys(Locale)
+     * @see #translate(String[])
+     * @return {@link Map}
+     */ 
+    public Map<String, String> translationMap()
+    {
+      return this.translate( this.allPropertyKeys() );
+    }
+
+    /**
+     * Similar to {@link #translationMap()} for the given {@link Locale} instead. 
+     * @see Translator
+     * @see #allPropertyKeys(Locale)
+     * @see #translate(String[])
+     * @param locale
+     * @return {@link Map}
+     */ 
+    public Map<String, String> translationMap( Locale locale )
+    {
+      return this.translate( locale, this.allPropertyKeys( locale ) );
+    }
 
   }
 
 
   /**
+   * This {@link I18nFacade} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see I18nFacade
+   * @param locale
    */ 
   public I18nFacade( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see I18nFacade
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public I18nFacade( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
-    this.I18n = new I18n( locale );
+    this.I18n = new I18n( locale, silentlyIgnoreMissingResourceException );
   }
   
 /**
@@ -183,15 +256,28 @@ public static class I18n {
   public final ViewTest ViewTest;
 
   /**
+   * This {@link I18n} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see I18n
+   * @param locale
    */ 
   public I18n( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see I18n
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public I18n( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
-    this._673numericalTest = new _673numericalTest( locale );
-    this.AdminTest = new AdminTest( locale );
-    this.LocalelessTest = new LocalelessTest( locale );
-    this.ViewTest = new ViewTest( locale );
+    this._673numericalTest = new _673numericalTest( locale, silentlyIgnoreMissingResourceException );
+    this.AdminTest = new AdminTest( locale, silentlyIgnoreMissingResourceException );
+    this.LocalelessTest = new LocalelessTest( locale, silentlyIgnoreMissingResourceException );
+    this.ViewTest = new ViewTest( locale, silentlyIgnoreMissingResourceException );
   }
   
 /**
@@ -223,17 +309,31 @@ public static class I18n {
  * @see #translator(Locale)
  */ 
 public static class _673numericalTest {
-  private final Locale locale;
   private final static String baseName = "i18n.673numericalTest";
+  private final Locale locale;
+  private final boolean silentlyIgnoreMissingResourceException;
 
   /**
+   * This {@link _673numericalTest} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see _673numericalTest
+   * @param locale
    */ 
   public _673numericalTest( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see _673numericalTest
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public _673numericalTest( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
     this.locale = locale;
-
+    this.silentlyIgnoreMissingResourceException = silentlyIgnoreMissingResourceException;
   }
   
   /**
@@ -250,56 +350,34 @@ public static class _673numericalTest {
    * <li>en_US=value {0} and {1}</li>
    * </ul>
    * @see _673numericalTest
-   * @see #tryGetMyPropertyKey1(Locale locale)
    * @see #getMyPropertyKey1()
    * @param locale 
    */ 
-  public static String getMyPropertyKey1(Locale locale)
-  {
-    final String key = "my.property.key1";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
-  }
-
-  /**
-   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
-   * @see _673numericalTest
-   * @see #tryGetMyPropertyKey1()
-   * @see #getMyPropertyKey1(Locale)
-   */ 
-  public String getMyPropertyKey1()
-  {
-    return getMyPropertyKey1( this.locale );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
-   * @see _673numericalTest
-   * @see #getMyPropertyKey1(Locale locale)
-   * @see #tryGetMyPropertyKey1()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey1(Locale locale)
+  public String getMyPropertyKey1(Locale locale)
   {
     try
     {
-      return getMyPropertyKey1( locale );
+      final String key = "my.property.key1";
+      return resourceBasedTranslator.translate( baseName, key, locale );
     }
     catch ( MissingResourceException e )
     {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
       return null;
     }
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see _673numericalTest
-   * @see #getMyPropertyKey1()
-   * @see #tryGetMyPropertyKey1(Locale)
+   * @see #getMyPropertyKey1(Locale)
    */ 
-  public String tryGetMyPropertyKey1()
+  public String getMyPropertyKey1()
   {
-    return tryGetMyPropertyKey1( this.locale );
+    return getMyPropertyKey1( this.locale );
   }
 
   /**
@@ -317,12 +395,11 @@ public static class _673numericalTest {
    * <li>en_US=value {0} and {1}</li>
    * </ul>
    * @see _673numericalTest
-   * @see #tryGetMyPropertyKey1(Locale,String[])
    * @see #getMyPropertyKey1(String[])
    * @param locale
    * @param tokens
    */ 
-  public static String getMyPropertyKey1( Locale locale, String... tokens )
+  public String getMyPropertyKey1( Locale locale, String... tokens )
   {
     String retval = getMyPropertyKey1( locale );
     for ( int ii = 0; ii < tokens.length; ii++ )
@@ -340,44 +417,11 @@ public static class _673numericalTest {
    * Similar to  {@link #getMyPropertyKey1(Locale,String[])} using the predefined {@link Locale}.
    * @see _673numericalTest
    * @see #getMyPropertyKey1(Locale,String[])
-   * @see #tryGetMyPropertyKey1(String[])
    * @param tokens
    */ 
   public String getMyPropertyKey1( String... tokens )
   {
     return getMyPropertyKey1( this.locale, tokens );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey1(Locale,String[])} but does not throw any {@link MissingResourceException}.
-   * @see _673numericalTest
-   * @see #getMyPropertyKey1(Locale,String[])
-   * @see #tryGetMyPropertyKey1(String[])
-   * @param locale
-   * @param tokens
-   */ 
-  public static String tryGetMyPropertyKey1( Locale locale, String... tokens )
-  {
-    try
-    {
-      return getMyPropertyKey1( locale, tokens );
-    }
-    catch ( MissingResourceException e )
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey1(String[])} but does not throw any {@link MissingResourceException}.
-   * @see _673numericalTest
-   * @see #getMyPropertyKey1(String[])
-   * @see #tryGetMyPropertyKey1(Locale,String[])
-   * @param tokens
-   */ 
-  public String tryGetMyPropertyKey1( String... tokens )
-  {
-    return tryGetMyPropertyKey1( this.locale, tokens );
   }
 
   /**
@@ -393,56 +437,34 @@ public static class _673numericalTest {
    * <li>en_US=value3 with {arbitrary} replacement</li>
    * </ul>
    * @see _673numericalTest
-   * @see #tryGetMyPropertyKey3(Locale locale)
    * @see #getMyPropertyKey3()
    * @param locale 
    */ 
-  public static String getMyPropertyKey3(Locale locale)
-  {
-    final String key = "my.property.key3";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
-  }
-
-  /**
-   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
-   * @see _673numericalTest
-   * @see #tryGetMyPropertyKey3()
-   * @see #getMyPropertyKey3(Locale)
-   */ 
-  public String getMyPropertyKey3()
-  {
-    return getMyPropertyKey3( this.locale );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey3(Locale)} but does not throw any {@link MissingResourceException}.
-   * @see _673numericalTest
-   * @see #getMyPropertyKey3(Locale locale)
-   * @see #tryGetMyPropertyKey3()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey3(Locale locale)
+  public String getMyPropertyKey3(Locale locale)
   {
     try
     {
-      return getMyPropertyKey3( locale );
+      final String key = "my.property.key3";
+      return resourceBasedTranslator.translate( baseName, key, locale );
     }
     catch ( MissingResourceException e )
     {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
       return null;
     }
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey3()} but does not throw any {@link MissingResourceException}.
+   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
    * @see _673numericalTest
-   * @see #getMyPropertyKey3()
-   * @see #tryGetMyPropertyKey3(Locale)
+   * @see #getMyPropertyKey3(Locale)
    */ 
-  public String tryGetMyPropertyKey3()
+  public String getMyPropertyKey3()
   {
-    return tryGetMyPropertyKey3( this.locale );
+    return getMyPropertyKey3( this.locale );
   }
 
   /**
@@ -459,12 +481,11 @@ public static class _673numericalTest {
    * <li>en_US=value3 with {arbitrary} replacement</li>
    * </ul>
    * @see _673numericalTest
-   * @see #tryGetMyPropertyKey3(Locale,Map)
    * @see #getMyPropertyKey3(Map)
    * @param locale
    * @param placeholderToReplacementMap
    */ 
-  public static String getMyPropertyKey3( Locale locale, Map<String, String> placeholderToReplacementMap )
+  public String getMyPropertyKey3( Locale locale, Map<String, String> placeholderToReplacementMap )
   {
     String retval = getMyPropertyKey3( locale );
     if ( placeholderToReplacementMap != null )
@@ -485,7 +506,6 @@ public static class _673numericalTest {
    * Similar to  {@link #getMyPropertyKey3(Locale,Map)} using the predefined {@link Locale}.
    * @see _673numericalTest
    * @see #getMyPropertyKey3(Locale,Map)
-   * @see #tryGetMyPropertyKey3(Map)
    * @param placeholderToReplacementMap
    */ 
   public String getMyPropertyKey3( Map<String, String> placeholderToReplacementMap )
@@ -494,51 +514,32 @@ public static class _673numericalTest {
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey3(Locale,Map)} but does not throw any {@link MissingResourceException}.
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see _673numericalTest
-   * @see #getMyPropertyKey3(Locale,Map)
-   * @see #tryGetMyPropertyKey3(Map)
-   * @param locale
-   * @param placeholderToReplacementMap
-   */ 
-  public static String tryGetMyPropertyKey3( Locale locale, Map<String, String> placeholderToReplacementMap )
+   * @see #translator()
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale, boolean silentlyIgnoreMissingResourceException)
   {
-    try
-    {
-      return getMyPropertyKey3( locale, placeholderToReplacementMap );
-    }
-    catch ( MissingResourceException e )
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey3(Map)} but does not throw any {@link MissingResourceException}.
-   * @see _673numericalTest
-   * @see #getMyPropertyKey3(Locale, Map)
-   * @see #tryGetMyPropertyKey3(Locale, Map)
-   * @param placeholderToReplacementMap
-   */ 
-  public String tryGetMyPropertyKey3( Map<String, String> placeholderToReplacementMap )
-  {
-    return tryGetMyPropertyKey3( this.locale, placeholderToReplacementMap );
+    return new Translator( baseName, locale, silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see _673numericalTest
    * @see #translator()
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
-  public static Translator translator(Locale locale)
+  public Translator translator(Locale locale)
   {
-    return new Translator( baseName, locale );
+    return new Translator( baseName, locale, this.silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see _673numericalTest
    * @see #translator(Locale)
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
   public Translator translator()
   {
@@ -582,17 +583,31 @@ public static class _673numericalTest {
  * @see #translator(Locale)
  */ 
 public static class AdminTest {
-  private final Locale locale;
   private final static String baseName = "i18n.adminTest";
+  private final Locale locale;
+  private final boolean silentlyIgnoreMissingResourceException;
 
   /**
+   * This {@link AdminTest} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see AdminTest
+   * @param locale
    */ 
   public AdminTest( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see AdminTest
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public AdminTest( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
     this.locale = locale;
-
+    this.silentlyIgnoreMissingResourceException = silentlyIgnoreMissingResourceException;
   }
   
   /**
@@ -605,56 +620,34 @@ public static class AdminTest {
    * <li>en_US=value1</li>
    * </ul>
    * @see AdminTest
-   * @see #tryGetMyPropertyKey1(Locale locale)
    * @see #getMyPropertyKey1()
    * @param locale 
    */ 
-  public static String getMyPropertyKey1(Locale locale)
-  {
-    final String key = "my.property.key1";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
-  }
-
-  /**
-   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
-   * @see AdminTest
-   * @see #tryGetMyPropertyKey1()
-   * @see #getMyPropertyKey1(Locale)
-   */ 
-  public String getMyPropertyKey1()
-  {
-    return getMyPropertyKey1( this.locale );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
-   * @see AdminTest
-   * @see #getMyPropertyKey1(Locale locale)
-   * @see #tryGetMyPropertyKey1()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey1(Locale locale)
+  public String getMyPropertyKey1(Locale locale)
   {
     try
     {
-      return getMyPropertyKey1( locale );
+      final String key = "my.property.key1";
+      return resourceBasedTranslator.translate( baseName, key, locale );
     }
     catch ( MissingResourceException e )
     {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
       return null;
     }
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see AdminTest
-   * @see #getMyPropertyKey1()
-   * @see #tryGetMyPropertyKey1(Locale)
+   * @see #getMyPropertyKey1(Locale)
    */ 
-  public String tryGetMyPropertyKey1()
+  public String getMyPropertyKey1()
   {
-    return tryGetMyPropertyKey1( this.locale );
+    return getMyPropertyKey1( this.locale );
   }
 
   /**
@@ -667,21 +660,29 @@ public static class AdminTest {
    * <li>en_US=value2</li>
    * </ul>
    * @see AdminTest
-   * @see #tryGetMyPropertyKey2(Locale locale)
    * @see #getMyPropertyKey2()
    * @param locale 
    */ 
-  public static String getMyPropertyKey2(Locale locale)
+  public String getMyPropertyKey2(Locale locale)
   {
-    final String key = "my.property.key2";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    try
+    {
+      final String key = "my.property.key2";
+      return resourceBasedTranslator.translate( baseName, key, locale );
+    }
+    catch ( MissingResourceException e )
+    {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
+      return null;
+    }
   }
 
   /**
    * Similar to {@link #getMyPropertyKey2(Locale)} for the predefined {@link Locale}.
    * @see AdminTest
-   * @see #tryGetMyPropertyKey2()
    * @see #getMyPropertyKey2(Locale)
    */ 
   public String getMyPropertyKey2()
@@ -690,49 +691,32 @@ public static class AdminTest {
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey2(Locale)} but does not throw any {@link MissingResourceException}.
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see AdminTest
-   * @see #getMyPropertyKey2(Locale locale)
-   * @see #tryGetMyPropertyKey2()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey2(Locale locale)
+   * @see #translator()
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale, boolean silentlyIgnoreMissingResourceException)
   {
-    try
-    {
-      return getMyPropertyKey2( locale );
-    }
-    catch ( MissingResourceException e )
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey2()} but does not throw any {@link MissingResourceException}.
-   * @see AdminTest
-   * @see #getMyPropertyKey2()
-   * @see #tryGetMyPropertyKey2(Locale)
-   */ 
-  public String tryGetMyPropertyKey2()
-  {
-    return tryGetMyPropertyKey2( this.locale );
+    return new Translator( baseName, locale, silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see AdminTest
    * @see #translator()
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
-  public static Translator translator(Locale locale)
+  public Translator translator(Locale locale)
   {
-    return new Translator( baseName, locale );
+    return new Translator( baseName, locale, this.silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see AdminTest
    * @see #translator(Locale)
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
   public Translator translator()
   {
@@ -766,17 +750,31 @@ public static class AdminTest {
  * @see #translator(Locale)
  */ 
 public static class LocalelessTest {
-  private final Locale locale;
   private final static String baseName = "i18n.localelessTest";
+  private final Locale locale;
+  private final boolean silentlyIgnoreMissingResourceException;
 
   /**
+   * This {@link LocalelessTest} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see LocalelessTest
+   * @param locale
    */ 
   public LocalelessTest( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see LocalelessTest
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public LocalelessTest( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
     this.locale = locale;
-
+    this.silentlyIgnoreMissingResourceException = silentlyIgnoreMissingResourceException;
   }
   
   /**
@@ -788,21 +786,29 @@ public static class LocalelessTest {
    * <li>=value9</li>
    * </ul>
    * @see LocalelessTest
-   * @see #tryGetMyPropertyKey9(Locale locale)
    * @see #getMyPropertyKey9()
    * @param locale 
    */ 
-  public static String getMyPropertyKey9(Locale locale)
+  public String getMyPropertyKey9(Locale locale)
   {
-    final String key = "my.property.key9";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    try
+    {
+      final String key = "my.property.key9";
+      return resourceBasedTranslator.translate( baseName, key, locale );
+    }
+    catch ( MissingResourceException e )
+    {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
+      return null;
+    }
   }
 
   /**
    * Similar to {@link #getMyPropertyKey9(Locale)} for the predefined {@link Locale}.
    * @see LocalelessTest
-   * @see #tryGetMyPropertyKey9()
    * @see #getMyPropertyKey9(Locale)
    */ 
   public String getMyPropertyKey9()
@@ -811,49 +817,32 @@ public static class LocalelessTest {
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey9(Locale)} but does not throw any {@link MissingResourceException}.
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see LocalelessTest
-   * @see #getMyPropertyKey9(Locale locale)
-   * @see #tryGetMyPropertyKey9()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey9(Locale locale)
+   * @see #translator()
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale, boolean silentlyIgnoreMissingResourceException)
   {
-    try
-    {
-      return getMyPropertyKey9( locale );
-    }
-    catch ( MissingResourceException e )
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey9()} but does not throw any {@link MissingResourceException}.
-   * @see LocalelessTest
-   * @see #getMyPropertyKey9()
-   * @see #tryGetMyPropertyKey9(Locale)
-   */ 
-  public String tryGetMyPropertyKey9()
-  {
-    return tryGetMyPropertyKey9( this.locale );
+    return new Translator( baseName, locale, silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see LocalelessTest
    * @see #translator()
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
-  public static Translator translator(Locale locale)
+  public Translator translator(Locale locale)
   {
-    return new Translator( baseName, locale );
+    return new Translator( baseName, locale, this.silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see LocalelessTest
    * @see #translator(Locale)
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
   public Translator translator()
   {
@@ -898,17 +887,31 @@ public static class LocalelessTest {
  * @see #translator(Locale)
  */ 
 public static class ViewTest {
-  private final Locale locale;
   private final static String baseName = "i18n.viewTest";
+  private final Locale locale;
+  private final boolean silentlyIgnoreMissingResourceException;
 
   /**
+   * This {@link ViewTest} constructor will create a new instance which silently ignores any {@link MissingResourceException} 
    * @see ViewTest
+   * @param locale
    */ 
   public ViewTest( Locale locale )
   {
+    this(locale,true);
+  }
+  
+
+  /**
+   * @see ViewTest
+   * @param locale
+   * @param silentlyIgnoreMissingResourceException
+   */ 
+  public ViewTest( Locale locale, boolean silentlyIgnoreMissingResourceException )
+  {
     super();
     this.locale = locale;
-
+    this.silentlyIgnoreMissingResourceException = silentlyIgnoreMissingResourceException;
   }
   
   /**
@@ -921,56 +924,34 @@ public static class ViewTest {
    * <li>en_US=value1</li>
    * </ul>
    * @see ViewTest
-   * @see #tryGetMyPropertyKey1(Locale locale)
    * @see #getMyPropertyKey1()
    * @param locale 
    */ 
-  public static String getMyPropertyKey1(Locale locale)
-  {
-    final String key = "my.property.key1";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
-  }
-
-  /**
-   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
-   * @see ViewTest
-   * @see #tryGetMyPropertyKey1()
-   * @see #getMyPropertyKey1(Locale)
-   */ 
-  public String getMyPropertyKey1()
-  {
-    return getMyPropertyKey1( this.locale );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey1(Locale)} but does not throw any {@link MissingResourceException}.
-   * @see ViewTest
-   * @see #getMyPropertyKey1(Locale locale)
-   * @see #tryGetMyPropertyKey1()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey1(Locale locale)
+  public String getMyPropertyKey1(Locale locale)
   {
     try
     {
-      return getMyPropertyKey1( locale );
+      final String key = "my.property.key1";
+      return resourceBasedTranslator.translate( baseName, key, locale );
     }
     catch ( MissingResourceException e )
     {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
       return null;
     }
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey1()} but does not throw any {@link MissingResourceException}.
+   * Similar to {@link #getMyPropertyKey1(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
-   * @see #getMyPropertyKey1()
-   * @see #tryGetMyPropertyKey1(Locale)
+   * @see #getMyPropertyKey1(Locale)
    */ 
-  public String tryGetMyPropertyKey1()
+  public String getMyPropertyKey1()
   {
-    return tryGetMyPropertyKey1( this.locale );
+    return getMyPropertyKey1( this.locale );
   }
 
   /**
@@ -982,56 +963,34 @@ public static class ViewTest {
    * <li>en_US=value3</li>
    * </ul>
    * @see ViewTest
-   * @see #tryGetMyPropertyKey3(Locale locale)
    * @see #getMyPropertyKey3()
    * @param locale 
    */ 
-  public static String getMyPropertyKey3(Locale locale)
-  {
-    final String key = "my.property.key3";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
-  }
-
-  /**
-   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
-   * @see ViewTest
-   * @see #tryGetMyPropertyKey3()
-   * @see #getMyPropertyKey3(Locale)
-   */ 
-  public String getMyPropertyKey3()
-  {
-    return getMyPropertyKey3( this.locale );
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey3(Locale)} but does not throw any {@link MissingResourceException}.
-   * @see ViewTest
-   * @see #getMyPropertyKey3(Locale locale)
-   * @see #tryGetMyPropertyKey3()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey3(Locale locale)
+  public String getMyPropertyKey3(Locale locale)
   {
     try
     {
-      return getMyPropertyKey3( locale );
+      final String key = "my.property.key3";
+      return resourceBasedTranslator.translate( baseName, key, locale );
     }
     catch ( MissingResourceException e )
     {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
       return null;
     }
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey3()} but does not throw any {@link MissingResourceException}.
+   * Similar to {@link #getMyPropertyKey3(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
-   * @see #getMyPropertyKey3()
-   * @see #tryGetMyPropertyKey3(Locale)
+   * @see #getMyPropertyKey3(Locale)
    */ 
-  public String tryGetMyPropertyKey3()
+  public String getMyPropertyKey3()
   {
-    return tryGetMyPropertyKey3( this.locale );
+    return getMyPropertyKey3( this.locale );
   }
 
   /**
@@ -1043,21 +1002,29 @@ public static class ViewTest {
    * <li>de_DE=wert4</li>
    * </ul>
    * @see ViewTest
-   * @see #tryGetMyPropertyKey4(Locale locale)
    * @see #getMyPropertyKey4()
    * @param locale 
    */ 
-  public static String getMyPropertyKey4(Locale locale)
+  public String getMyPropertyKey4(Locale locale)
   {
-    final String key = "my.property.key4";
-    ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName, locale );
-    return resourceBundle.getString( key );
+    try
+    {
+      final String key = "my.property.key4";
+      return resourceBasedTranslator.translate( baseName, key, locale );
+    }
+    catch ( MissingResourceException e )
+    {
+      if (!this.silentlyIgnoreMissingResourceException)
+      {
+        throw e;
+      }
+      return null;
+    }
   }
 
   /**
    * Similar to {@link #getMyPropertyKey4(Locale)} for the predefined {@link Locale}.
    * @see ViewTest
-   * @see #tryGetMyPropertyKey4()
    * @see #getMyPropertyKey4(Locale)
    */ 
   public String getMyPropertyKey4()
@@ -1066,49 +1033,32 @@ public static class ViewTest {
   }
 
   /**
-   * Similar to  {@link #getMyPropertyKey4(Locale)} but does not throw any {@link MissingResourceException}.
+   * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see ViewTest
-   * @see #getMyPropertyKey4(Locale locale)
-   * @see #tryGetMyPropertyKey4()
-   * @param locale 
-   */ 
-  public static String tryGetMyPropertyKey4(Locale locale)
+   * @see #translator()
+   * @see #translator(Locale)
+   * @return {@link Translator}   */ 
+  public static Translator translator(Locale locale, boolean silentlyIgnoreMissingResourceException)
   {
-    try
-    {
-      return getMyPropertyKey4( locale );
-    }
-    catch ( MissingResourceException e )
-    {
-      return null;
-    }
-  }
-
-  /**
-   * Similar to  {@link #getMyPropertyKey4()} but does not throw any {@link MissingResourceException}.
-   * @see ViewTest
-   * @see #getMyPropertyKey4()
-   * @see #tryGetMyPropertyKey4(Locale)
-   */ 
-  public String tryGetMyPropertyKey4()
-  {
-    return tryGetMyPropertyKey4( this.locale );
+    return new Translator( baseName, locale, silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the given {@link Locale} and based on the {@value #baseName} i18n base
    * @see ViewTest
    * @see #translator()
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
-  public static Translator translator(Locale locale)
+  public Translator translator(Locale locale)
   {
-    return new Translator( baseName, locale );
+    return new Translator( baseName, locale, this.silentlyIgnoreMissingResourceException );
   }
 
   /**
    * Returns a new {@link Translator} instance using the internal {@link Locale} and based on the {@value #baseName} i18n base
    * @see ViewTest
    * @see #translator(Locale)
+   * @see #translator(Locale,boolean)
    * @return {@link Translator}   */ 
   public Translator translator()
   {
