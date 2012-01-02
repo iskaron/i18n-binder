@@ -18,6 +18,7 @@ package org.omnaest.i18nbinder.internal;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.omnaest.i18nbinder.grouping.FileGroup;
 import org.omnaest.i18nbinder.grouping.FileGroupToPropertiesAdapter;
 import org.omnaest.i18nbinder.grouping.FileGrouper;
@@ -284,6 +286,7 @@ public class FacadeCreatorHelper
     retval.append( "import java.util.Map;\n" );
     retval.append( "import java.util.MissingResourceException;\n" );
     retval.append( "import java.util.ResourceBundle;\n\n" );
+    retval.append( "import javax.annotation.Generated;\n\n" );
     
     //
     String className = StringUtils.isNotBlank( javaFacadeFileName ) ? javaFacadeFileName
@@ -414,7 +417,10 @@ public class FacadeCreatorHelper
     stringBuilder.append( "/**\n" );
     stringBuilder.append( " * This is an automatically with i18nBinder generated facade class.<br><br>\n" );
     stringBuilder.append( " * To modify please adapt the underlying property files.<br><br>\n" );
-    stringBuilder.append( " * If the facade class is instantiated with a given {@link Locale} all non static methods will use this predefined {@link Locale} when invoked.<br><br>\n" );
+    stringBuilder.append( " * If the facade class is instantiated with a given {@link Locale} using {@link #" + className
+                          + "(Locale)} all non static methods will use this predefined {@link Locale} when invoked.<br><br>\n" );
+    stringBuilder.append( " * The facade methods will silently ignore all {@link MissingResourceException}s by default. To alter this behavior see {@link #"
+                          + className + "(Locale, boolean)}<br><br>\n" );
     stringBuilder.append( hasBaseName ? " * Resource base: <b>" + baseName + "</b>\n" : "" );
     
     //
@@ -482,6 +488,8 @@ public class FacadeCreatorHelper
       stringBuilder.append( " * @see #translator(Locale)\n" );
     }
     stringBuilder.append( " */ \n" );
+    stringBuilder.append( "@Generated(value = \"org.omnaest.i18nbinder.I18nBinder\", date = \""
+                          + DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format( Calendar.getInstance() ) + "\")\n" );
     
     //class
     stringBuilder.append( "public " + ( staticModifier ? "static " : "" ) + "class " + className + " {\n" );
