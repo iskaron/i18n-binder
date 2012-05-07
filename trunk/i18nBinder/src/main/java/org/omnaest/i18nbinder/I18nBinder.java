@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -59,6 +60,7 @@ public class I18nBinder extends Task
   protected String        baseNameInTargetPlattform                = "";
   protected String        baseFolderIgnoredPath                    = "";
   protected String        packageName                              = "";
+  protected boolean       externalizeTypes;
   
   /* ********************************************** Methods ********************************************** */
   @Override
@@ -177,18 +179,26 @@ public class I18nBinder extends Task
     
     try
     {
-      String facadeFromPropertyFiles = FacadeCreatorHelper.createI18nInterfaceFacadeFromPropertyFiles( propertyFileSet,
-                                                                                                       this.localeFilter,
-                                                                                                       this.fileNameLocaleGroupPattern,
-                                                                                                       this.fileNameLocaleGroupPatternGroupIndexList,
-                                                                                                       this.baseNameInTargetPlattform,
-                                                                                                       this.baseFolderIgnoredPath,
-                                                                                                       this.packageName,
-                                                                                                       this.javaFacadeFileName.replaceAll( "\\.java$",
-                                                                                                                                           "" ) );
-      
-      File file = new File( this.javaFacadeFileName );
-      FileUtils.writeStringToFile( file, facadeFromPropertyFiles, "utf-8" );
+      //
+      final Map<String, String> facadeFromPropertyFiles = FacadeCreatorHelper.createI18nInterfaceFacadeFromPropertyFiles( propertyFileSet,
+                                                                                                                          this.localeFilter,
+                                                                                                                          this.fileNameLocaleGroupPattern,
+                                                                                                                          this.fileNameLocaleGroupPatternGroupIndexList,
+                                                                                                                          this.baseNameInTargetPlattform,
+                                                                                                                          this.baseFolderIgnoredPath,
+                                                                                                                          this.packageName,
+                                                                                                                          this.javaFacadeFileName.replaceAll( "\\.java$",
+                                                                                                                                                              "" ),
+                                                                                                                          this.externalizeTypes );
+      for ( String fileName : facadeFromPropertyFiles.keySet() )
+      {
+        //
+        final boolean isRootFacadeType = StringUtils.equals( FacadeCreatorHelper.DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE,
+                                                             fileName );
+        final File file = isRootFacadeType ? new File( this.javaFacadeFileName ) : new File( fileName + ".java" );
+        final String fileContent = facadeFromPropertyFiles.get( fileName );
+        FileUtils.writeStringToFile( file, fileContent, "utf-8" );
+      }
     }
     catch ( Exception e )
     {
@@ -405,6 +415,12 @@ public class I18nBinder extends Task
   {
     this.log( "packageName=" + packageName );
     this.packageName = packageName;
+  }
+  
+  public void setExternalizeTypes( boolean externalizeTypes )
+  {
+    this.log( "externalizeTypes=" + externalizeTypes );
+    this.externalizeTypes = externalizeTypes;
   }
   
 }
