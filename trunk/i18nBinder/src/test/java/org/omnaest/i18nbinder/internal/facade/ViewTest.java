@@ -44,7 +44,7 @@ import javax.annotation.Generated;
  * @see #translator()
  * @see #translator(Locale)
  */ 
-@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-07T22:35:04+02:00")
+@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-18T11:34:07+02:00")
 public class ViewTest {
   private final static String baseName = "i18n.viewTest";
   private final Locale locale;

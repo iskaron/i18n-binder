@@ -19,7 +19,7 @@ import javax.annotation.Generated;
  * @see LocalelessTest
  * @see ViewTest
  */ 
-@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-07T22:35:04+02:00")
+@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-18T11:34:07+02:00")
 public class I18n {
   /** @see _673numericalTest */
   public final _673numericalTest _673numericalTest;

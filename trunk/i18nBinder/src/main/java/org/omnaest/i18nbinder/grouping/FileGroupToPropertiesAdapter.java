@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +44,7 @@ public class FileGroupToPropertiesAdapter
   
   /* ********************************************** Variables ********************************************** */
   protected FileGroup        fileGroup                  = null;
+  private PropertyFileCache  propertyFileCache          = new PropertyFileCache();
   
   /* ********************************************** Classes/Interfaces ********************************************** */
   /**
@@ -53,7 +55,7 @@ public class FileGroupToPropertiesAdapter
   protected static class PropertyFileAndProperty
   {
     /* ********************************************** Variables ********************************************** */
-
+    
     protected PropertyFile propertyFile = null;
     protected Property     property     = null;
     
@@ -80,8 +82,23 @@ public class FileGroupToPropertiesAdapter
     
   }
   
+  private static class PropertyFileCache
+  {
+    private Map<File, PropertyFile> cache = new WeakHashMap<File, PropertyFile>();
+    
+    public PropertyFile get( File file )
+    {
+      return this.cache.get( file );
+    }
+    
+    public void put( PropertyFile propertyFile )
+    {
+      this.cache.put( propertyFile.getFile(), propertyFile );
+    }
+  }
+  
   /* ********************************************** Methods ********************************************** */
-
+  
   public FileGroupToPropertiesAdapter( FileGroup fileGroup )
   {
     super();
@@ -129,6 +146,38 @@ public class FileGroupToPropertiesAdapter
   }
   
   /**
+   * Resolves and loads a {@link PropertyFile}
+   * 
+   * @see #resolvePropertyFile(String)
+   * @param groupToken
+   * @return
+   */
+  protected PropertyFile resolveAndLoadPropertyFile( String groupToken )
+  {
+    //
+    PropertyFile propertyFile = this.resolvePropertyFile( groupToken );
+    
+    //
+    if ( propertyFile != null )
+    {
+      //
+      PropertyFile propertyFileFromCache = this.propertyFileCache.get( propertyFile.getFile() );
+      if ( propertyFileFromCache != null )
+      {
+        propertyFile = propertyFileFromCache;
+      }
+      else
+      {
+        propertyFile.load();
+        this.propertyFileCache.put( propertyFile );
+      }
+    }
+    
+    //
+    return propertyFile;
+  }
+  
+  /**
    * @see PropertyFileAndProperty
    * @param propertyKey
    * @param groupToken
@@ -143,12 +192,9 @@ public class FileGroupToPropertiesAdapter
     if ( propertyKey != null && groupToken != null )
     {
       //
-      PropertyFile propertyFile = this.resolvePropertyFile( groupToken );
+      PropertyFile propertyFile = this.resolveAndLoadPropertyFile( groupToken );
       if ( propertyFile != null )
       {
-        //        
-        propertyFile.load();
-        
         //
         PropertyFileContent propertyFileContent = propertyFile.getPropertyFileContent();
         PropertyMap propertyMap = propertyFileContent.getPropertyMap();
@@ -247,12 +293,9 @@ public class FileGroupToPropertiesAdapter
     for ( String groupToken : this.determineGroupTokenList() )
     {
       //
-      PropertyFile propertyFile = this.resolvePropertyFile( groupToken );
+      PropertyFile propertyFile = this.resolveAndLoadPropertyFile( groupToken );
       if ( propertyFile != null )
       {
-        //
-        propertyFile.load();
-        
         //
         PropertyFileContent propertyFileContent = propertyFile.getPropertyFileContent();
         PropertyMap propertyMap = propertyFileContent.getPropertyMap();

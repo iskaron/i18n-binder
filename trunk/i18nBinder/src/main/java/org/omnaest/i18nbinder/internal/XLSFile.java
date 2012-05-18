@@ -15,12 +15,15 @@
  ******************************************************************************/
 package org.omnaest.i18nbinder.internal;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +35,8 @@ import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * Simple representation of an XLS file of Microsoft Excel.
@@ -43,7 +48,8 @@ public class XLSFile implements Serializable
   /* ********************************************** Constants ********************************************** */
   private static final long   serialVersionUID  = 4924867114503312907L;
   private static final String MAINSHEETPAGENAME = "all";
-  private static final String FILESUFFIX        = ".xls";
+  private static final String FILESUFFIX_XLS    = ".xls";
+  private static final String FILESUFFIX_XLSX   = ".xlsx";
   
   /* ********************************************** Variables ********************************************** */
   private List<TableRow>      tableRowList      = new ArrayList<TableRow>();
@@ -77,7 +83,7 @@ public class XLSFile implements Serializable
    */
   public XLSFile( File file )
   {
-    this.file = file;
+    this.setFile( file );
   }
   
   /**
@@ -88,8 +94,8 @@ public class XLSFile implements Serializable
     try
     {
       //
-      InputStream inp = new FileInputStream( this.file );
-      HSSFWorkbook wb = new HSSFWorkbook( new POIFSFileSystem( inp ) );
+      InputStream inputStream = new BufferedInputStream( new FileInputStream( this.file ) );
+      Workbook wb = this.newWorkbookFrom( inputStream );
       Sheet sheet = wb.getSheet( MAINSHEETPAGENAME );
       
       //
@@ -122,12 +128,55 @@ public class XLSFile implements Serializable
     
   }
   
+  private boolean useXLSXFileFormat()
+  {
+    return this.file != null && this.file.getName().toLowerCase().endsWith( FILESUFFIX_XLSX );
+  }
+  
+  private Workbook newWorkbookFrom( InputStream inputStream ) throws IOException
+  {
+    //
+    Workbook retval = null;
+    
+    //
+    if ( this.useXLSXFileFormat() )
+    {
+      retval = new XSSFWorkbook( inputStream );
+    }
+    else
+    {
+      retval = new HSSFWorkbook( new POIFSFileSystem( inputStream ) );
+    }
+    
+    //
+    return retval;
+  }
+  
+  private Workbook newWorkbookToWrite()
+  {
+    //
+    Workbook retval = null;
+    
+    //
+    if ( this.useXLSXFileFormat() )
+    {
+      retval = new SXSSFWorkbook();
+    }
+    else
+    {
+      retval = new HSSFWorkbook();
+    }
+    
+    //
+    return retval;
+  }
+  
   /**
    * Stores the data from the object onto disk.
    */
   public void store()
   {
-    Workbook wb = new HSSFWorkbook();
+    Workbook wb = this.newWorkbookToWrite();
     CreationHelper createHelper = wb.getCreationHelper();
     Sheet sheet = wb.createSheet( "all" );
     
@@ -148,9 +197,11 @@ public class XLSFile implements Serializable
     
     try
     {
-      FileOutputStream fileOut = new FileOutputStream( this.file );
-      wb.write( fileOut );
-      fileOut.close();
+      final FileOutputStream fileOutputStream = new FileOutputStream( this.file );
+      final OutputStream outputStream = new BufferedOutputStream( fileOutputStream );
+      wb.write( outputStream );
+      outputStream.close();
+      fileOutputStream.close();
     }
     catch ( FileNotFoundException e )
     {
@@ -169,7 +220,12 @@ public class XLSFile implements Serializable
     boolean retval = false;
     
     //
-    retval = ( file != null ) && file.exists() && file.isFile() && file.getAbsolutePath().toLowerCase().endsWith( FILESUFFIX );
+    retval = ( file != null )
+             && file.exists()
+             && file.isFile()
+             && ( file.getAbsolutePath().toLowerCase().endsWith( FILESUFFIX_XLS ) || file.getAbsolutePath()
+                                                                                         .toLowerCase()
+                                                                                         .endsWith( FILESUFFIX_XLSX ) );
     
     //
     return retval;

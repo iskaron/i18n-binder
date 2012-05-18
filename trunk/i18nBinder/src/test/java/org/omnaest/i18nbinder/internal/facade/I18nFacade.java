@@ -15,7 +15,7 @@ import javax.annotation.Generated;
  * The facade methods will silently ignore all {@link MissingResourceException}s by default. To alter this behavior see {@link #I18nFacade(Locale, boolean)}<br><br>
  * @see I18n
  */ 
-@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-07T22:35:04+02:00")
+@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-18T11:34:07+02:00")
 public class I18nFacade {
   /** @see I18n */
   public final I18n I18n;
