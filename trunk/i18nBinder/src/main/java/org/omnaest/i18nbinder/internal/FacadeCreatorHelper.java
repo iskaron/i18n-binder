@@ -40,8 +40,8 @@ import org.omnaest.i18nbinder.grouping.FileGroup;
 import org.omnaest.i18nbinder.grouping.FileGroupToPropertiesAdapter;
 import org.omnaest.i18nbinder.grouping.FileGrouper;
 import org.omnaest.utils.structure.collection.list.ListUtils;
-import org.omnaest.utils.structure.collection.list.ListUtils.ElementFilter;
 import org.omnaest.utils.structure.element.converter.ElementConverterElementToMapEntry;
+import org.omnaest.utils.structure.element.filter.ElementFilterNotBlank;
 import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy;
 import org.omnaest.utils.structure.hierarchy.TokenMonoHierarchy.TokenElementPath;
 import org.omnaest.utils.structure.map.SimpleEntry;
@@ -64,7 +64,7 @@ public class FacadeCreatorHelper
    * @param localeFilter
    * @param fileNameLocaleGroupPattern
    * @param groupingPatternGroupingGroupIndexList
-   * @param javaFacadeFileName
+   * @param i18nFacadeName
    * @param externalizeTypes
    * @return
    */
@@ -75,7 +75,7 @@ public class FacadeCreatorHelper
                                                                                 String baseNameInTargetPlattform,
                                                                                 String baseFolderIgnoredPath,
                                                                                 String packageName,
-                                                                                String javaFacadeFileName,
+                                                                                String i18nFacadeName,
                                                                                 boolean externalizeTypes )
   {
     //
@@ -207,16 +207,7 @@ public class FacadeCreatorHelper
             }
             
             //
-            ElementFilter<String> elementFilter = new ElementFilter<String>()
-            {
-              @Override
-              public boolean filter( String element )
-              {
-                // 
-                return !StringUtils.isNotBlank( element );
-              }
-            };
-            tokenPathElementList = ListUtils.filter( tokenPathElementList, elementFilter );
+            tokenPathElementList = ListUtils.filter( tokenPathElementList, new ElementFilterNotBlank() );
             
           }
           
@@ -259,8 +250,8 @@ public class FacadeCreatorHelper
         //
         final Map<String, StringBuilder> externalizedClassToContentMap = externalizeTypes ? new LinkedHashMap<String, StringBuilder>()
                                                                                          : null;
-        retmap.put( DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE,
-                    buildFacadeSource( TokenMonoHierarchy, packageName, javaFacadeFileName, externalizedClassToContentMap ) );
+        retmap.put( i18nFacadeName,
+                    buildFacadeSource( TokenMonoHierarchy, packageName, i18nFacadeName, externalizedClassToContentMap ) );
         if ( externalizeTypes )
         {
           for ( String subClassName : externalizedClassToContentMap.keySet() )
@@ -285,7 +276,7 @@ public class FacadeCreatorHelper
   
   private static String buildFacadeSource( TokenMonoHierarchy<String, PropertyKeyAndValues> TokenMonoHierarchy,
                                            String packageName,
-                                           String javaFacadeFileName,
+                                           String i18nFacadeName,
                                            Map<String, StringBuilder> externalizedClassToContentMap )
   {
     //
@@ -295,10 +286,11 @@ public class FacadeCreatorHelper
     TokenMonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator = TokenMonoHierarchy.getNavigator();
     
     //
-    final String className = StringUtils.isNotBlank( javaFacadeFileName ) ? javaFacadeFileName
-                                                                         : DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE;
+    final String className = i18nFacadeName;
     final boolean isSubClass = false;
-    buildFacadeSource( retval, className, isSubClass, navigator, externalizedClassToContentMap, className, packageName );
+    final String rootPackageName = packageName;
+    buildFacadeSource( retval, className, isSubClass, navigator, externalizedClassToContentMap, i18nFacadeName, packageName,
+                       rootPackageName );
     
     return retval.toString().replaceAll( "\n", LINE_SEPARATOR );
   }
@@ -309,15 +301,16 @@ public class FacadeCreatorHelper
                                          TokenMonoHierarchy<String, PropertyKeyAndValues>.Navigator navigator,
                                          Map<String, StringBuilder> externalizedClassToContentMap,
                                          String i18nFacadeName,
-                                         String packageName )
+                                         String packageName,
+                                         String rootPackageName )
   {
     //
     final Map<String, String> subClassNameToTokenElementMap = new LinkedHashMap<String, String>();
     final Map<String, List<String>> propertyNameToExampleValueListMap = new LinkedHashMap<String, List<String>>();
     final Map<String, String> propertyNameToPropertyKeyMap = new HashMap<String, String>();
     final String baseName = StringUtils.join( navigator.determineTokenPathElementList(), "." );
-    boolean externalizeTypes = externalizedClassToContentMap != null;
-    boolean staticModifier = !externalizeTypes && isSubClass;
+    final boolean externalizeTypes = externalizedClassToContentMap != null;
+    final boolean staticModifier = !externalizeTypes && isSubClass;
     
     //
     {
@@ -328,6 +321,7 @@ public class FacadeCreatorHelper
                                                              new CamelCaseTokenElementToMapEntryConverter( className ) ) );
       
     }
+    final boolean hasAtLeastOneSubclass = !subClassNameToTokenElementMap.isEmpty();
     {
       //
       if ( navigator.hasValues() )
@@ -428,12 +422,38 @@ public class FacadeCreatorHelper
     {
       //
       stringBuilder.append( StringUtils.isNotBlank( packageName ) ? "package " + packageName + ";\n\n" : "" );
-      stringBuilder.append( "import java.util.LinkedHashMap;\n" );
+      
       stringBuilder.append( "import java.util.Locale;\n" );
-      stringBuilder.append( "import java.util.Map;\n" );
       stringBuilder.append( "import java.util.MissingResourceException;\n" );
-      stringBuilder.append( "import java.util.ResourceBundle;\n\n" );
       stringBuilder.append( "import javax.annotation.Generated;\n\n" );
+      stringBuilder.append( "import java.util.Map;\n" );
+      
+      //
+      if ( !isSubClass )
+      {
+        stringBuilder.append( "import java.util.LinkedHashMap;\n" );
+        stringBuilder.append( "import java.util.ResourceBundle;\n\n" );
+      }
+      
+      //
+      if ( externalizeTypes )
+      {
+        //
+        if ( hasProperties )
+        {
+          stringBuilder.append( "import " + rootPackageName + "." + i18nFacadeName + ";\n" );
+          stringBuilder.append( "import " + rootPackageName + "." + i18nFacadeName + ".Translator;\n" );
+        }
+        
+        //
+        if ( hasAtLeastOneSubclass )
+        {
+          for ( String subClassName : subClassNameToTokenElementMap.keySet() )
+          {
+            stringBuilder.append( "import " + packageName + "." + StringUtils.lowerCase( className ) + "." + subClassName + ";\n" );
+          }
+        }
+      }
     }
     
     //documentation
@@ -476,7 +496,7 @@ public class FacadeCreatorHelper
         if ( !propertyNameToExampleValueListMap.isEmpty() )
         {
           //
-          stringBuilder.append( "  private final static String baseName = \"" + baseName + "\";\n" );
+          stringBuilder.append( "  public final static String baseName = \"" + baseName + "\";\n" );
           stringBuilder.append( "  private final Locale locale;\n" );
           stringBuilder.append( "  private final boolean silentlyIgnoreMissingResourceException;\n" );
         }
@@ -491,36 +511,40 @@ public class FacadeCreatorHelper
         
         if ( !isSubClass )
         {
-          stringBuilder.append( "  /** Internally used {@link ResourceBasedTranslator}. Changing this implementation affects the behavior of the whole facade */\n" );
-          stringBuilder.append( "  protected static ResourceBasedTranslator resourceBasedTranslator = new ResourceBasedTranslator()\n" );
+          stringBuilder.append( "   /** Static access helper for the underlying resource */\n" );
+          stringBuilder.append( "   public static class Resource\n" );
           stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    @Override\n" );
-          stringBuilder.append( "    public String translate( String baseName, String key, Locale locale )\n" );
+          stringBuilder.append( "    /** Internally used {@link ResourceBasedTranslator}. Changing this implementation affects the behavior of the whole facade */\n" );
+          stringBuilder.append( "    public static ResourceBasedTranslator resourceBasedTranslator = new ResourceBasedTranslator()\n" );
           stringBuilder.append( "    {\n" );
-          stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );\n" );
-          stringBuilder.append( "      return resourceBundle.getString( key );\n" );
-          stringBuilder.append( "    }\n\n" );
-          stringBuilder.append( "    @Override\n" );
-          stringBuilder.append( "    public String[] resolveAllKeys( String baseName, Locale locale )\n" );
-          stringBuilder.append( "    {\n" );
-          stringBuilder.append( "      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );\n" );
-          stringBuilder.append( "      return resourceBundle.keySet().toArray( new String[0] );\n" );
-          stringBuilder.append( "    }\n" );
-          stringBuilder.append( "  };\n\n" );
+          stringBuilder.append( "      @Override\n" );
+          stringBuilder.append( "      public String translate( String baseName, String key, Locale locale )\n" );
+          stringBuilder.append( "      {\n" );
+          stringBuilder.append( "        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );\n" );
+          stringBuilder.append( "        return resourceBundle.getString( key );\n" );
+          stringBuilder.append( "      }\n\n" );
+          stringBuilder.append( "      @Override\n" );
+          stringBuilder.append( "      public String[] resolveAllKeys( String baseName, Locale locale )\n" );
+          stringBuilder.append( "      {\n" );
+          stringBuilder.append( "        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );\n" );
+          stringBuilder.append( "        return resourceBundle.keySet().toArray( new String[0] );\n" );
+          stringBuilder.append( "      }\n" );
+          stringBuilder.append( "    };\n\n" );
+          stringBuilder.append( "  }\n" );
           
           stringBuilder.append( "  /** Defines which {@link ResourceBasedTranslator} the facade should use. This affects all available instances. */\n" );
           stringBuilder.append( "  public static void use( ResourceBasedTranslator resourceBasedTranslator )\n" );
           stringBuilder.append( "  {\n" );
-          stringBuilder.append( "    " + i18nFacadeName + ".resourceBasedTranslator = resourceBasedTranslator;\n" );
+          stringBuilder.append( "    " + i18nFacadeName + ".Resource.resourceBasedTranslator = resourceBasedTranslator;\n" );
           stringBuilder.append( "  }\n\n" );
+          
         }
       }
       
       //helper classes
       {
-        if ( !staticModifier )
+        if ( !isSubClass )
         {
-          //
           appendResourceBasedTranslatorInterface( stringBuilder );
           appendTranslatorHelper( stringBuilder, i18nFacadeName );
         }
@@ -575,20 +599,22 @@ public class FacadeCreatorHelper
         stringBuilder.append( "  \n" );
       }
       
-      //static sublcasses
+      //static subclasses
       {
         //
         for ( String subClassName : subClassNameToTokenElementMap.keySet() )
         {
           //
           final boolean subClassIsSubClass = true;
+          final String subClassPackageName = !externalizeTypes ? packageName : packageName + "."
+                                                                               + StringUtils.lowerCase( className );
           final StringBuilder subClassStringBuilder;
           {
             //
             if ( externalizeTypes )
             {
               subClassStringBuilder = new StringBuilder();
-              externalizedClassToContentMap.put( subClassName, subClassStringBuilder );
+              externalizedClassToContentMap.put( subClassPackageName + "." + subClassName, subClassStringBuilder );
             }
             else
             {
@@ -597,7 +623,7 @@ public class FacadeCreatorHelper
           }
           buildFacadeSource( subClassStringBuilder, subClassName, subClassIsSubClass,
                              navigator.newNavigatorFork().navigateToChild( subClassNameToTokenElementMap.get( subClassName ) ),
-                             externalizedClassToContentMap, i18nFacadeName, packageName );
+                             externalizedClassToContentMap, i18nFacadeName, subClassPackageName, rootPackageName );
         }
       }
       
@@ -636,7 +662,7 @@ public class FacadeCreatorHelper
             stringBuilder.append( "    {\n" );
             stringBuilder.append( "      final String key = \"" + propertyKey + "\";\n" );
             stringBuilder.append( "      return " + i18nFacadeName
-                                  + ".resourceBasedTranslator.translate( baseName, key, locale );\n" );
+                                  + ".Resource.resourceBasedTranslator.translate( baseName, key, locale );\n" );
             stringBuilder.append( "    }\n" );
             stringBuilder.append( "    catch ( MissingResourceException e )\n" );
             stringBuilder.append( "    {\n" );
@@ -655,7 +681,6 @@ public class FacadeCreatorHelper
             printJavaDocPlaceholders( stringBuilder, replacementTokensForExampleValuesArbitraryPlaceholders );
             printJavaDocValueExamples( stringBuilder, exampleValueList );
             stringBuilder.append( "   * @see " + className + "\n" );
-            stringBuilder.append( "   * @see #get" + propertyName + "(Locale)\n" );
             stringBuilder.append( "   */ \n" );
             stringBuilder.append( "  public String get" + propertyName + "()\n" );
             stringBuilder.append( "  {\n" );
@@ -979,7 +1004,7 @@ public class FacadeCreatorHelper
       stringBuilder.append( "      try\n" );
       stringBuilder.append( "      {\n" );
       stringBuilder.append( "        return " + I18nFacadeName
-                            + ".resourceBasedTranslator.translate( this.baseName, key, locale );\n" );
+                            + ".Resource.resourceBasedTranslator.translate( this.baseName, key, locale );\n" );
       stringBuilder.append( "      }\n" );
       stringBuilder.append( "      catch ( MissingResourceException e )\n" );
       stringBuilder.append( "      {\n" );
@@ -1042,7 +1067,7 @@ public class FacadeCreatorHelper
       stringBuilder.append( "    public String[] allPropertyKeys(Locale locale)\n" );
       stringBuilder.append( "    {\n" );
       stringBuilder.append( "      return " + I18nFacadeName
-                            + ".resourceBasedTranslator.resolveAllKeys( this.baseName, locale );\n" );
+                            + ".Resource.resourceBasedTranslator.resolveAllKeys( this.baseName, locale );\n" );
       stringBuilder.append( "    }\n\n" );
       
       stringBuilder.append( "    /**\n" );

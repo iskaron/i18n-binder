@@ -1,13 +1,14 @@
 package org.omnaest.i18nbinder.internal.facade;
 
-import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
 import javax.annotation.Generated;
 
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.ResourceBundle;
+
+import org.omnaest.i18nbinder.internal.facade.i18nfacade.I18n;
 /**
  * This is an automatically with i18nBinder generated facade class.<br><br>
  * To modify please adapt the underlying property files.<br><br>
@@ -15,32 +16,36 @@ import javax.annotation.Generated;
  * The facade methods will silently ignore all {@link MissingResourceException}s by default. To alter this behavior see {@link #I18nFacade(Locale, boolean)}<br><br>
  * @see I18n
  */ 
-@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-05-18T11:34:07+02:00")
+@Generated(value = "org.omnaest.i18nbinder.I18nBinder", date = "2012-06-23T13:00:51+02:00")
 public class I18nFacade {
   /** @see I18n */
   public final I18n I18n;
-  /** Internally used {@link ResourceBasedTranslator}. Changing this implementation affects the behavior of the whole facade */
-  protected static ResourceBasedTranslator resourceBasedTranslator = new ResourceBasedTranslator()
+   /** Static access helper for the underlying resource */
+   public static class Resource
   {
-    @Override
-    public String translate( String baseName, String key, Locale locale )
+    /** Internally used {@link ResourceBasedTranslator}. Changing this implementation affects the behavior of the whole facade */
+    public static ResourceBasedTranslator resourceBasedTranslator = new ResourceBasedTranslator()
     {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
-      return resourceBundle.getString( key );
-    }
+      @Override
+      public String translate( String baseName, String key, Locale locale )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
+        return resourceBundle.getString( key );
+      }
 
-    @Override
-    public String[] resolveAllKeys( String baseName, Locale locale )
-    {
-      ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
-      return resourceBundle.keySet().toArray( new String[0] );
-    }
-  };
+      @Override
+      public String[] resolveAllKeys( String baseName, Locale locale )
+      {
+        ResourceBundle resourceBundle = ResourceBundle.getBundle( baseName,locale );
+        return resourceBundle.keySet().toArray( new String[0] );
+      }
+    };
 
+  }
   /** Defines which {@link ResourceBasedTranslator} the facade should use. This affects all available instances. */
   public static void use( ResourceBasedTranslator resourceBasedTranslator )
   {
-    I18nFacade.resourceBasedTranslator = resourceBasedTranslator;
+    I18nFacade.Resource.resourceBasedTranslator = resourceBasedTranslator;
   }
 
 
@@ -114,7 +119,7 @@ public class I18nFacade {
     {
       try
       {
-        return I18nFacade.resourceBasedTranslator.translate( this.baseName, key, locale );
+        return I18nFacade.Resource.resourceBasedTranslator.translate( this.baseName, key, locale );
       }
       catch ( MissingResourceException e )
       {
@@ -174,7 +179,7 @@ public class I18nFacade {
      */ 
     public String[] allPropertyKeys(Locale locale)
     {
-      return I18nFacade.resourceBasedTranslator.resolveAllKeys( this.baseName, locale );
+      return I18nFacade.Resource.resourceBasedTranslator.resolveAllKeys( this.baseName, locale );
     }
 
     /**

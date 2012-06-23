@@ -180,6 +180,9 @@ public class I18nBinder extends Task
     try
     {
       //
+      final String i18nFacadeName = StringUtils.defaultString( this.javaFacadeFileName,
+                                                               FacadeCreatorHelper.DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE )
+                                               .replaceAll( "\\.java$", "" );
       final Map<String, String> facadeFromPropertyFiles = FacadeCreatorHelper.createI18nInterfaceFacadeFromPropertyFiles( propertyFileSet,
                                                                                                                           this.localeFilter,
                                                                                                                           this.fileNameLocaleGroupPattern,
@@ -187,16 +190,22 @@ public class I18nBinder extends Task
                                                                                                                           this.baseNameInTargetPlattform,
                                                                                                                           this.baseFolderIgnoredPath,
                                                                                                                           this.packageName,
-                                                                                                                          this.javaFacadeFileName.replaceAll( "\\.java$",
-                                                                                                                                                              "" ),
+                                                                                                                          i18nFacadeName,
                                                                                                                           this.externalizeTypes );
       for ( String fileName : facadeFromPropertyFiles.keySet() )
       {
         //
-        final boolean isRootFacadeType = StringUtils.equals( FacadeCreatorHelper.DEFAULT_JAVA_FACADE_FILENAME_I18N_FACADE,
-                                                             fileName );
-        final File file = isRootFacadeType ? new File( this.javaFacadeFileName ) : new File( fileName + ".java" );
         final String fileContent = facadeFromPropertyFiles.get( fileName );
+        final boolean isRootFacadeType = StringUtils.equals( i18nFacadeName, fileName );
+        
+        //
+        if ( !isRootFacadeType && fileName.contains( "." ) )
+        {
+          fileName = reduceFileNameAndCreateDirectoryPath( fileName );
+        }
+        
+        //        
+        final File file = isRootFacadeType ? new File( this.javaFacadeFileName ) : new File( fileName + ".java" );
         FileUtils.writeStringToFile( file, fileContent, "utf-8" );
       }
     }
@@ -207,6 +216,25 @@ public class I18nBinder extends Task
     
     //
     this.log( "...done" );
+  }
+  
+  private String reduceFileNameAndCreateDirectoryPath( String fileName )
+  {
+    fileName = StringUtils.removeStart( fileName, this.packageName + "." );
+    File directory = new File( this.baseNameInTargetPlattform );
+    String[] tokens = fileName.split( "\\." );
+    for ( int ii = 0; ii < tokens.length - 1; ii++ )
+    {
+      String directoryName = tokens[ii];
+      directory = new File( directory, directoryName );
+      if ( !directory.exists() )
+      {
+        directory.mkdir();
+      }
+    }
+    fileName = StringUtils.join( Arrays.copyOf( tokens, tokens.length - 1 ), "/" ) + ( tokens.length > 1 ? "/" : "" )
+               + tokens[tokens.length - 1];
+    return fileName;
   }
   
   /**
