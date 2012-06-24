@@ -10,9 +10,11 @@ This means that the general modification source will be the source property file
 be just generated on top of it, to act as an typed wrapper.
 
 As an example assume following properties source files available within your project:
+
 http://i18n-binder.googlecode.com/svn/wiki/images/propertiesFolderStructure.png
 
 And you get following code files generated automatically from it:
+
 http://i18n-binder.googlecode.com/svn/wiki/images/javaFacade.png
 
 
@@ -45,7 +47,7 @@ externalizeTypes            = true
 
 ||property||default||description||
 ||javaFacadeFilename||I18nFacade.java||The root facade file name||
-||packageName||||The package name the facade should reside in||
+||packageName|| ||The package name the facade should reside in||
 ||baseNameInTargetPlattform||i18n||The root folder of the i18n files, therefore a Java root type will be generated having that given name||
 ||externalizeTypes||true||If false a single Java file is generated, otherwise a whole package structure is created similar to the i18n folder structure||
 
@@ -119,7 +121,7 @@ A more advanced configuration would look like:
 === Parameters ===
 
 ||parameter||default||example||description||
-||packageName||||org.omnaest.i18nbinder.test||name of the package the Java facade is located in||
+||packageName|| ||org.omnaest.i18nbinder.test||name of the package the Java facade is located in||
 ||baseNameInTargetPlattform||i18n||i18nTranslation||name of the generated Java type for the root folder the i18n source files||
 ||i18nFacadeName||I18nFacade||PropertyFacade||The name of the generated Java facade||
 ||externalizeTypes||true||true or false||If false only one single Java file is generated with nested types, otherwise a package folder structure is created similar to the i18n folders||
