@@ -127,6 +127,7 @@ A more advanced configuration would look like:
 ||externalizeTypes||true||true or false||If false only one single Java file is generated with nested types, otherwise a package folder structure is created similar to the i18n folders||
 ||propertiesRootDirectory||src/main/resources/i18n||src/main/resources/properties||The location root of the i18n properties files||
 ||localeFilterRegex||.*||de_DE|en_US||Filter for specific locales. If there are more locales available as code should be generated for this filter can be used. It is a regular expression which should include all locales||
+||logResolvedPropertyFileNames||false||true or false||If set to true the i18nBinder logs which files are resolved and written||
 		
 		
 		
