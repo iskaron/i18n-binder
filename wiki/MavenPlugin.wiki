@@ -52,6 +52,6 @@ And one goal which create the i18nfacade during compilation:
 }}}
 
 Notes: 
-* the i18nFacade will be generated into \target\generated-sources\i18nbinder
-* the i18n.xls file will be located within the project root
-* the location of the property files are stored within the xls file itself with absolute path names
+ * the i18nFacade will be generated into \target\generated-sources\i18nbinder
+ * the i18n.xls file will be located within the project root
+ * the location of the property files are stored within the xls file itself with absolute path names
